@@ -110,6 +110,7 @@ head(genes_gr)
 Step 3. Prepare the plot data.
 
 ```{r prepareData}
+set.seed(42)
 plotData <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
                           chromosome_order_method = 'chr',
                           max_links=500 # small number for illustration
