@@ -1,0 +1,23 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/orthoRibbon.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/addGeneInfo.html</loc></url>
+<url><loc>/reference/add_coord.html</loc></url>
+<url><loc>/reference/buildBezierDF.html</loc></url>
+<url><loc>/reference/buildChromDF.html</loc></url>
+<url><loc>/reference/buildHomologLinksDF.html</loc></url>
+<url><loc>/reference/buildPlotData.html</loc></url>
+<url><loc>/reference/filterChrom.html</loc></url>
+<url><loc>/reference/getChrOrders.html</loc></url>
+<url><loc>/reference/getGeneGRs.html</loc></url>
+<url><loc>/reference/getGeneIDs.html</loc></url>
+<url><loc>/reference/getHomologGRs.html</loc></url>
+<url><loc>/reference/getHomologIDs.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/orthoRibbonPlot.html</loc></url>
+<url><loc>/reference/subsetHomologsByChrom.html</loc></url>
+</urlset>
+
