@@ -1,0 +1,193 @@
+---
+title: "orthoRibbon Vignette: Ribbon-Diagram Visualization of Orthologous Genes Across Species"
+author: "Jianhong Ou"
+date: "`r BiocStyle::doc_date()`"
+package: "`r BiocStyle::pkg_ver('orthoRibbon')`"
+abstract: >
+  OrthoRibbon is a visualization toolkit for displaying orthologous
+    gene relationships across species using ribbon-based diagrams.
+    It enables intuitive comparison of conserved genes and genomic
+    correspondence between chromosomes or genomic regions.
+    The package supports flexible input formats and produces publication-quality
+    figures for comparative genomics and evolutionary analysis..
+vignette: >
+  %\VignetteIndexEntry{orthoRibbon Vignette: Ribbon-Diagram Visualization of Orthologous Genes Across Species}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    fig_caption: true
+---
+
+```{r, echo=FALSE, results="hide", warning=FALSE}
+knitr::opts_chunk$set(
+    warning = FALSE, message = FALSE,
+    fig.width = 12, fig.height = 4,
+    dpi = 72
+)
+```
+## Introduction
+
+Comparative genomics plays a central role in understanding gene conservation and evolutionary relationships across species. Orthologous genes, which arise from speciation events and often retain similar biological functions, provide a fundamental framework for cross-species genomic comparison. Visualizing these relationships in an intuitive and scalable manner is important for interpreting genome organization and gene correspondence among multiple species.
+
+OrthoRibbon is an R package designed to visualize orthologous gene relationships across species using ribbon-based diagrams. The package connects homologous genes between genomes through ribbons that link their genomic positions, enabling users to easily explore conserved genes and cross-species genomic structures. By transforming ortholog tables into clear visual representations, OrthoRibbon facilitates comparative genomic analysis and produces customizable, publication-quality figures.
+
+OrthoRibbon supports flexible input formats and can integrate ortholog annotations from common databases such as Ensembl or other orthology inference tools. The package is designed to be lightweight and highly customizable, allowing users to control genomic layouts, ribbon aesthetics, and species ordering. These features make OrthoRibbon a practical visualization tool for researchers studying evolutionary conservation, genome organization, and cross-species gene relationships.
+
+
+## Installation
+
+```{r, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
+BiocManager::install("jianhong/orthoRibbon")
+```
+
+## Quick start
+
+There are five main steps to visualize your data with `orthoRibbon`:
+
+Step 1. Load the required library.
+```{r loadlibrary,warning = FALSE,message=FALSE}
+library(orthoRibbon)
+library(geneClusterPattern)
+library(GenomeInfoDb)
+```
+
+Step 2. Define the species abbreviation. 
+They are abbreviated species identifiers derived from the binomial (Latin) 
+species names. You can try to guess it from common names.
+The plot order is decided by the order of your input show as 'com_name' here. 
+
+```{r getAbbreviations}
+com_name <- geneClusterPattern::guessSpecies(
+  c('human', 'house mouse', 'zebrafish'))
+names(com_name) <- com_name # must assign the names.
+com_name
+```
+
+Step 2. Retrieve chromosome, homologs, and gene coordinates via Biomart.
+
+```{r retrieveHomologs,eval=FALSE}
+# prepare mart for biomart
+marts <- geneClusterPattern::guessSpecies(com_name, output='mart')
+
+# prepare all the ensembl ids
+ids <- orthoRibbon::getGeneIDs(com_name, marts)
+
+# get chromosome info
+chrom_infos<- lapply(com_name, GenomeInfoDb::getChromInfoFromEnsembl)
+
+# retrieve all the homologs
+homologs <- orthoRibbon::getHomologGRs(ids, com_name, marts)
+
+# retrieve all the gene ranges
+genes_gr <- orthoRibbon::getGeneGRs(ids, marts, homologs)
+
+# reformat the homologs to data.frame
+homolog_df <- getHomologIDs(homologs)
+```
+
+Since this step retrieve information via "biomaRt", it will take some time.
+We will load presaved data.
+```{r loadData}
+extdata <- system.file('extdata', package='orthoRibbon')
+chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
+names(chrom_infos)
+head(chrom_infos[[1]])
+homologs_df <- readRDS(file.path(extdata, 'homolog_df.human.mouse.zebrafish.rds'))
+head(homologs_df)
+genes_gr <- readRDS(file.path(extdata, 'gene.GRanges.obj.rds'))
+head(genes_gr)
+```
+
+
+Step 3. Prepare the plot data.
+
+```{r prepareData}
+plotData <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = 'chr',
+                          max_links=500 # small number for illustration
+                          )
+names(plotData)
+```
+You may want to try different methods to set the chromosome orders.
+```{r otherOrderMethods,eval=FALSE}
+# Different methods optimize different criteria:
+# 1. GW (Gruvaeus-Wainer) - minimizes gradient measure
+chr_order_gw <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "GW")
+
+# 2. OLO (Optimal Leaf Ordering) - optimal for dendrograms
+chr_order_olo <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "OLO")
+
+# 3. TSP (Traveling Salesman Problem) - minimizes path length
+chr_order_tsp <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "TSP")
+
+# 4. Spectral - uses eigenvectors
+chr_order_spec <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "Spectral")
+
+# 5. customized
+seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
+chr_order_manu <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                                chr_orders=seq_names)
+```
+
+
+Step 4. Calculate the exactly position for Bezier curve.
+
+There are three methods to calculate the position, by chromosome locations of the gene, by the index of the gene, by the homolog chromosome names of the gene. 
+```{r calBezierCurve}
+# by coordinates
+bezier_chr <- buildBezierDF(plotData$homolog_df_list,
+                           colname1='topChr_finalOffset',
+                           colname2='bottomChr_finalOffset')
+# by the index
+bezier_ix <- buildBezierDF(plotData$homolog_df_list,
+                           colname1='topIx_finalOffset',
+                           colname2='bottomIx_finalOffset')
+# by homolog chromosome names
+bezier_mini <- buildBezierDF(plotData$homolog_df_list,
+                             colname1='topMini_finalOffset',
+                             colname2='bottomMini_finalOffset')
+```
+
+Step 5. Plot the data.
+
+```{r plotData}
+# by coordinates
+orthoRibbonPlot(com_name, bezier_chr,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
+# by the index
+orthoRibbonPlot(com_name, bezier_ix,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
+# by homologous chromosome names
+symbol_list_top <- plotData$symbol_list_top
+symbol_list_top$x <- symbol_list_top$xMini
+symbol_list_bottom <- plotData$symbol_list_bottom
+symbol_list_bottom$x <- symbol_list_bottom$xMini
+orthoRibbonPlot(com_name, bezier_mini,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df,
+                show_symbol=TRUE,
+                symbol_list_top=symbol_list_top,
+                symbol_list_bottom=symbol_list_bottom,
+                symbol_size=1)
+```
+
+## SessionInfo
+
+```{r pressure, echo=FALSE}
+sessionInfo()
+```
+

@@ -1,0 +1,52 @@
+Package: orthoRibbon
+Type: Package
+Title: Ribbon-Diagram Visualization of Orthologous Genes Across Species
+Version: 0.1.0
+Authors@R: 
+    c(person(given="Jianhong", family="Ou", email="jou@morgridge.org", 
+        role=c("aut", "cre"), comment=c(ORCID="0000-0002-8652-2488")),
+        person(given='Kenneth', family='Poss', email='kposs@morgridge.org',
+        role=c('aut', 'fnd')))
+Description: OrthoRibbon is a visualization toolkit for displaying orthologous
+    gene relationships across species using ribbon-based diagrams.
+    It enables intuitive comparison of conserved genes and genomic
+    correspondence between chromosomes or genomic regions.
+    The package supports flexible input formats and produces publication-quality
+    figures for comparative genomics and evolutionary analysis.
+LazyData: false
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+biocViews: Visualization, Annotation
+Depends:
+    R (>= 4.5.0)
+Imports:
+    AnnotationDbi,
+    BiocGenerics,
+    biomaRt,
+    dplyr,
+    geneClusterPattern,
+    GenomeInfoDb,
+    GenomicRanges,
+    ggforce,
+    ggplot2,
+    ggrepel,
+    methods,
+    rlang,
+    S4Vectors,
+    Seqinfo,
+    stats,
+    seriation
+Remotes:
+    jianhong/geneClusterPattern
+Suggests:
+    BiocStyle,
+    knitr,
+    rmarkdown,
+    testthat
+Enhances:
+    ChIPpeakAnno
+URL: https://github.com/jianhong/orthoRibbon
+BugReports: https://github.com/jianhong/orthoRibbon/issues
