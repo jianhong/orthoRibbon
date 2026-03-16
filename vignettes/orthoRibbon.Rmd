@@ -90,7 +90,7 @@ homologs <- orthoRibbon::getHomologGRs(ids, com_name, marts)
 genes_gr <- orthoRibbon::getGeneGRs(ids, marts, homologs)
 
 # reformat the homologs to data.frame
-homolog_df <- getHomologIDs(homologs)
+homologs_df <- getHomologIDs(homologs)
 ```
 
 Since this step retrieve information via "biomaRt", it will take some time.
@@ -185,6 +185,45 @@ orthoRibbonPlot(com_name, bezier_mini,
                 symbol_list_bottom=symbol_list_bottom,
                 symbol_size=1)
 ```
+
+## Start from the ortholog groups information
+
+First we prepare the species abbreviation.
+```{r human_fly_cn}
+com_name <- c('hsapiens', 'dmelanogaster')
+names(com_name) <- com_name # must assign the names.
+```
+
+And then load the ortholog data. You can get the ortholog data via tools like
+[OrthoFinder](https://github.com/OrthoFinder/OrthoFinder), 
+[odp](https://github.com/conchoecia/odp), or databases like
+[OrthoDB](https://www.orthodb.org/), [eggNOG](http://eggnog6.embl.de/).
+
+```{r load_human_fly_data}
+extdata <- system.file('extdata', package='orthoRibbon')
+chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
+chrom_infos
+homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
+head(homologs_df)
+```
+
+Last, plot the data.
+
+```{r}
+plotData <- buildPlotData(com_name, homologs_df,
+                          chrom_infos = chrom_infos,
+                          chromosome_order_method = 'chr',
+                          max_links=1000)
+
+bezier_mini <- buildBezierDF(plotData$homolog_df_list,
+                             colname1='topMini_finalOffset',
+                             colname2='bottomMini_finalOffset')
+
+orthoRibbonPlot(com_name, bezier_mini,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
+```
+
 
 ## SessionInfo
 

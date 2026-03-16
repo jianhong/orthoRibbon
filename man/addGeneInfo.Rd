@@ -4,7 +4,7 @@
 \alias{addGeneInfo}
 \title{Add gene information to homolog data.frame}
 \usage{
-addGeneInfo(homolog_df, genes_gr)
+addGeneInfo(homolog_df, genes_gr, type = "ortholog_pair_only")
 }
 \arguments{
 \item{homolog_df}{The data.frame with homologs. The output from function
@@ -12,6 +12,9 @@ addGeneInfo(homolog_df, genes_gr)
 
 \item{genes_gr}{The GRanges object with gene info. The output from function
 \link{getGeneGRs}}
+
+\item{type}{The type to indicate how to add the gene information. It could
+be ortholog_pair_only, ortholog_group_only or ortholog_group_with_gene_info.}
 }
 \description{
 Add gene information to homolog data.frame

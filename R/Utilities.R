@@ -66,7 +66,7 @@ getGeneIDs <- function(com_name, marts){
     }
 
   }else{
-    stopifnot(identical(com_name, names(marts)))
+    stopifnot(identical(names(com_name), names(marts)))
     null <- lapply(marts, function(.ele) {
       stopifnot("marts should be a list of Mart objects" =
                   is(.ele, 'Mart'))
@@ -74,6 +74,7 @@ getGeneIDs <- function(com_name, marts){
     ids <- lapply(marts, function(mart){
       getBM(attributes='ensembl_gene_id', mart=mart)
     })
+    ids <- lapply(ids, function(.ele) .ele$ensembl_gene_id)
   }
   return(ids)
 }
@@ -149,18 +150,24 @@ getHomologIDs <- function(homologs){
       .ele$ensembl_gene_ids <- rownames(.ele)
       .ele[, c('ensembl_gene_ids', 'homolog_ensembl_gene_ids')]
     })
-    ## bridged homologs
-    cmb <- combn(seq_along(mc), 2, simplify = FALSE)
-    mc_pair <- lapply(cmb, function(.ele){
-      ## only keep the bridged homologs
-      merge(mc[[.ele[1]]], mc[[.ele[2]]], by='ensembl_gene_ids')[, c(2, 3)]
-    })
-    ## fix the column names
-    mc <- lapply(c(mc, mc_pair), function(.ele){
-      colnames(.ele) <- c('x', 'y')
-      .ele
-    })
-    do.call(rbind, mc)
+    if(length(mc)>1){
+      ## bridged homologs
+      cmb <- combn(seq_along(mc), 2, simplify = FALSE)
+      mc_pair <- lapply(cmb, function(.ele){
+        ## only keep the bridged homologs
+        merge(mc[[.ele[1]]], mc[[.ele[2]]], by='ensembl_gene_ids')[, c(2, 3)]
+      })
+      ## fix the column names
+      mc <- lapply(c(mc, mc_pair), function(.ele){
+        colnames(.ele) <- c('x', 'y')
+        .ele
+      })
+      mc <- do.call(rbind, mc)
+    }else{
+      mc <- mc[[1]]
+      colnames(mc) <- c('x', 'y')
+    }
+    as.data.frame(mc)
   })
 
   homolog_ids <- do.call(rbind, homolog_ids)
@@ -168,6 +175,7 @@ getHomologIDs <- function(homologs){
   homolog_ids <- unique(t(homolog_ids))
   homolog_df <- as.data.frame(homolog_ids)
   colnames(homolog_df) <- c('gene_id1', 'gene_id2')
+  rownames(homolog_df) <- NULL
   return(homolog_df)
 }
 
@@ -209,23 +217,59 @@ getGeneGRs <- function(ids, marts, homologs){
 #' \link{getHomologIDs}
 #' @param genes_gr The GRanges object with gene info. The output from function
 #' \link{getGeneGRs}
+#' @param type The type to indicate how to add the gene information. It could
+#' be ortholog_pair_only, ortholog_group_only or ortholog_group_with_gene_info.
 #' @importFrom methods is
 #' @importFrom Seqinfo seqnames
 #' @importFrom BiocGenerics start
-addGeneInfo <- function(homolog_df, genes_gr){
+addGeneInfo <- function(homolog_df, genes_gr, type='ortholog_pair_only'){
+  stopifnot(type %in% c('ortholog_pair_only', 'ortholog_group_only',
+                        'ortholog_group_with_gene_info'))
   stopifnot(is.data.frame(homolog_df))
-  stopifnot(all(c('gene_id1', 'gene_id2') %in% colnames(homolog_df)))
-  stopifnot(is(genes_gr, 'GRanges'))
-  stopifnot(all(c('gene_name', 'species') %in% colnames(mcols(genes_gr))))
-
-  homolog_df$symbol1 <- genes_gr[homolog_df$gene_id1]$gene_name
-  homolog_df$symbol2 <- genes_gr[homolog_df$gene_id2]$gene_name
-  homolog_df$species1 <- genes_gr[homolog_df$gene_id1]$species
-  homolog_df$seq1<- as.character(seqnames(genes_gr[homolog_df$gene_id1]))
-  homolog_df$start1 <- start(genes_gr[homolog_df$gene_id1])
-  homolog_df$species2 <- genes_gr[homolog_df$gene_id2]$species
-  homolog_df$seq2<- as.character(seqnames(genes_gr[homolog_df$gene_id2]))
-  homolog_df$start2 <- start(genes_gr[homolog_df$gene_id2])
+  if(isTRUE(type=='ortholog_pair_only')){
+    stopifnot(all(c('gene_id1', 'gene_id2') %in% colnames(homolog_df)))
+  }else{
+    stopifnot(all(c('gene_id', 'ortholog_group') %in% colnames(homolog_df)))
+  }
+  if(isTRUE(grepl('_only', type))){
+    stopifnot(is(genes_gr, 'GRanges'))
+    stopifnot(all(c('gene_name', 'species') %in% colnames(mcols(genes_gr))))
+  }
+  if(isTRUE(type=='ortholog_pair_only')){
+    homolog_df$symbol1 <- genes_gr[homolog_df$gene_id1]$gene_name
+    homolog_df$symbol2 <- genes_gr[homolog_df$gene_id2]$gene_name
+    homolog_df$species1 <- genes_gr[homolog_df$gene_id1]$species
+    homolog_df$seq1<- as.character(seqnames(genes_gr[homolog_df$gene_id1]))
+    homolog_df$start1 <- start(genes_gr[homolog_df$gene_id1])
+    homolog_df$species2 <- genes_gr[homolog_df$gene_id2]$species
+    homolog_df$seq2<- as.character(seqnames(genes_gr[homolog_df$gene_id2]))
+    homolog_df$start2 <- start(genes_gr[homolog_df$gene_id2])
+  }else{
+    if(isTRUE(type=='ortholog_group_only')){
+      homolog_df$symbol <- genes_gr[homolog_df$gene_id]$gene_name
+      homolog_df$species <- genes_gr[homolog_df$gene_id]$species
+      homolog_df$chromosome <- as.character(seqnames(genes_gr[homolog_df$gene_id]))
+      homolog_df$start <- start(genes_gr[homolog_df$gene_id])
+    }
+    # Transform to pairwise format
+    create_all_pairwise_orthologs <- function(df, species1, species2) {
+      sp1 <- df[df$species %in% species1, , drop=FALSE]
+      sp2 <- df[df$species %in% species2, , drop=FALSE]
+      pairwise <- merge(sp1, sp2, by='ortholog_group', suffixes = c("1","2"))
+      return(pairwise)
+    }
+    sp_pairs <- unique(homolog_df$species) %>% combn(m=2, simplify = FALSE)
+    homolog_df <- lapply(sp_pairs, function(.ele){
+      create_all_pairwise_orthologs(homolog_df, .ele[1], .ele[2])
+    })
+    homolog_df <- do.call(rbind, homolog_df)
+    homolog_df <- homolog_df[, c(
+      'gene_id1', 'gene_id2',
+      'symbol1', 'symbol2',
+      'species1', 'seq1', 'start1',
+      'species2', 'seq2', 'start2'
+    ), drop=FALSE]
+  }
 
   return(homolog_df)
 }

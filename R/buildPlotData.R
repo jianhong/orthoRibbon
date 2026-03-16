@@ -32,13 +32,33 @@ buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
                           chromosome_order_method='chr'){
   # Step1 check input
   stopifnot(is.data.frame(homolog_df))
-  stopifnot(
-    'The input homolog_df must be a data.frame with column names
+  df_from_flag <- NA
+  if(all(c('gene_id', 'ortholog_group') %in% colnames(homolog_df))){
+    if(!all(c('species', 'seq', 'start') %in% colnames(homolog_df))){
+      stopifnot(is(genes_gr, 'GRanges'))
+      stopifnot("'gene_name', 'species' must be metadata column name of 'genes_gr'"=
+                  all(c('gene_name', 'species') %in% colnames(mcols(genes_gr))))
+      df_from_flag <- 'ortholog_group_only'
+    }else{
+      df_from_flag <- 'ortholog_group_with_gene_info'
+    }
+  }else{
+    stopifnot(
+      'The input homolog_df must be a data.frame with column names
     "gene_id1", "gene_id2"'=
-      all(c('gene_id1', 'gene_id2') %in% colnames(homolog_df)))
-  stopifnot(is(genes_gr, 'GRanges'))
-  stopifnot("'gene_name', 'species' must be metadata column name of 'genes_gr'"=
-              all(c('gene_name', 'species') %in% colnames(mcols(genes_gr))))
+        all(c('gene_id1', 'gene_id2') %in% colnames(homolog_df)))
+    if(!all(c('symbol1', 'symbol2',
+              'species1', 'seq1', 'start1',
+              'species2', 'seq2', 'start2') %in% colnames(homolog_df))){
+      stopifnot(is(genes_gr, 'GRanges'))
+      stopifnot("'gene_name', 'species' must be metadata column name of 'genes_gr'"=
+                  all(c('gene_name', 'species') %in% colnames(mcols(genes_gr))))
+      df_from_flag <- 'ortholog_pair_only'
+    }else{
+      df_from_flag <- 'ortholog_pair_with_gene_info'
+    }
+  }
+
   null <- lapply(chrom_infos, function(chrInfo){
     stopifnot('chromosome info must have columns "name" and "length"'=
                 all(c('name', 'length') %in% colnames(chrInfo)))
@@ -49,7 +69,11 @@ buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
   stopifnot(is.character(chromosome_order_method))
 
   # Step2 add gene information to homolog data.frame
-  homolog_df <- addGeneInfo(homolog_df, genes_gr)
+  if(isTRUE(df_from_flag!='ortholog_pair_with_gene_info')){
+    homolog_df <- addGeneInfo(homolog_df = homolog_df,
+                              genes_gr = genes_gr,
+                              type = df_from_flag)
+  }
 
   # Step3 filter the homolog data.frame by chromosome names
   if(isTRUE(filterByCoordSystem)){
