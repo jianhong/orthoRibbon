@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">orthoRibbon</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2</span>
       </span>
     </div>
 
@@ -65,7 +65,6 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-
 <div class="section level1">
 <div class="page-header"><h1 id="orthoribbon">orthoRibbon<a class="anchor" aria-label="anchor" href="#orthoribbon"></a>
 </h1></div>
@@ -88,115 +87,157 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>Install the development version from GitHub:</p>
-<p><code>{r} install.packages("remotes") remotes::install_github("jianhong/orthoRibbon",                         build_vignettes = TRUE,                         dependencies = TRUE)</code></p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"jianhong/orthoRibbon"</span>,</span>
+<span>                        build_vignettes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                        dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <p>Example workflow to visualize orthologous genes across species.</p>
-<p>```{r} library(orthoRibbon)</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jianhong/orthoRibbon" class="external-link">orthoRibbon</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># example ortholog table</span></span>
+<span><span class="va">ortho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  species1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Human"</span>, <span class="st">"Human"</span>, <span class="st">"Human"</span><span class="op">)</span>,</span>
+<span>  gene1    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TP53"</span>, <span class="st">"BRCA1"</span>, <span class="st">"MYC"</span><span class="op">)</span>,</span>
+<span>  species2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mouse"</span>, <span class="st">"Mouse"</span>, <span class="st">"Mouse"</span><span class="op">)</span>,</span>
+<span>  gene2    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Trp53"</span>, <span class="st">"Brca1"</span>, <span class="st">"Myc"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># plot ribbon diagram</span></span>
+<span><span class="fu">orthoRibbon</span><span class="op">(</span><span class="va">ortho</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="input-data">Input Data<a class="anchor" aria-label="anchor" href="#input-data"></a>
+</h2>
+<p>OrthoRibbon requires genomic coordinate information to position chromosomes and genes across species and to draw ribbons connecting orthologous genes.</p>
+<div class="section level3">
+<h3 id="method-1-supply-orthologous-gene-pairs-along-with-their-corresponding-genomic-information">Method 1: Supply orthologous gene pairs along with their corresponding genomic information.<a class="anchor" aria-label="anchor" href="#method-1-supply-orthologous-gene-pairs-along-with-their-corresponding-genomic-information"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="id_1-an-ortholog-table-describing-gene-relationships-across-species">1. An ortholog table describing gene relationships across species.<a class="anchor" aria-label="anchor" href="#id_1-an-ortholog-table-describing-gene-relationships-across-species"></a>
+</h3>
+<p>Typical fields include:</p>
+<table class="table">
+<thead><tr>
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">gene_id1</td>
+<td align="left">gene identifier</td>
+</tr>
+<tr>
+<td align="left">gene_id2</td>
+<td align="left">gene identifier</td>
+</tr>
+</tbody>
+</table>
+<p>Users can obtain ortholog information from databases or orthogroups searching tools such as:</p>
+<ul>
+<li><p><a href="http://www.ensembl.org/" class="external-link">Ensembl</a></p></li>
+<li><p><a href="https://www.orthodb.org/" class="external-link">OrthoDB</a></p></li>
+<li><p><a href="http://eggnog6.embl.de/" class="external-link">eggNOG</a></p></li>
+<li><p><a href="https://github.com/OrthoFinder/OrthoFinder" class="external-link">OrthoFinder</a></p></li>
+<li><p><a href="https://github.com/conchoecia/odp" class="external-link">odp</a></p></li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="id_2-chromosome-length-information">2. Chromosome Length Information<a class="anchor" aria-label="anchor" href="#id_2-chromosome-length-information"></a>
+</h3>
+<p>Chromosome length information defines the genomic layout for each species. These data are used to determine the relative sizes and positions of chromosomes in the visualization.</p>
+<p>The chromosome length information should be provided as a list, where each element corresponds to a species and is named by the species identifier.</p>
+<p>Each element of the list should be a chromosome table containing the following columns:</p>
+<table class="table">
+<thead><tr>
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code>name</code></td>
+<td align="left">Chromosome or scaffold name</td>
+</tr>
+<tr>
+<td align="left"><code>length</code></td>
+<td align="left">Chromosome length (in base pairs)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="id_3-gene-information">3. Gene Information<a class="anchor" aria-label="anchor" href="#id_3-gene-information"></a>
+</h3>
+<p>Gene information specifies the genomic coordinates of genes used in the ortholog visualization. These coordinates determine where ribbons will attach on each chromosome.</p>
+<p>Gene information should be provided as a <code>GRanges</code> object, with <code>gene_name</code> and <code>species</code> stored as metadata columns, and the gene identifier assigned as the name of each range.</p>
+</div>
+<div class="section level3">
+<h3 id="method-2-supply-orthologous-gene-groups-along-with-the-corresponding-genomic-information">Method 2: Supply orthologous gene groups along with the corresponding genomic information.<a class="anchor" aria-label="anchor" href="#method-2-supply-orthologous-gene-groups-along-with-the-corresponding-genomic-information"></a>
+</h3>
+<p>OrthoRibbon expects an ortholog table describing gene relationships across species.</p>
+<p>Typical fields include:</p>
+<table class="table">
+<thead><tr>
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">species</td>
+<td align="left">species name</td>
+</tr>
+<tr>
+<td align="left">gene_id</td>
+<td align="left">gene identifier</td>
+</tr>
+<tr>
+<td align="left">seq</td>
+<td align="left">chromosome name</td>
+</tr>
+<tr>
+<td align="left">start</td>
+<td align="left">genomic start coordinate</td>
+</tr>
+<tr>
+<td align="left">ortholog_group</td>
+<td align="left">ortholog group identifier</td>
+</tr>
+</tbody>
+</table>
+<p>And the chromosome length information as above.</p>
 </div>
 </div>
-<div class="section level1">
-<h1 id="example-ortholog-table">example ortholog table<a class="anchor" aria-label="anchor" href="#example-ortholog-table"></a>
-</h1>
-<p>ortho &lt;- data.frame( species1 = c(“Human”, “Human”, “Human”), gene1 = c(“TP53”, “BRCA1”, “MYC”), species2 = c(“Mouse”, “Mouse”, “Mouse”), gene2 = c(“Trp53”, “Brca1”, “Myc”) )</p>
+<div class="section level2">
+<h2 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
+</h2>
+<p>OrthoRibbon generates ribbon diagrams where:</p>
+<ul>
+<li><p>chromosomes or genomic regions are displayed as tracks</p></li>
+<li><p>orthologous genes are connected by ribbons</p></li>
+<li><p>ribbons represent cross-species gene relationships</p></li>
+</ul>
+<p>These visualizations help reveal:</p>
+<ul>
+<li><p>conserved genomic regions</p></li>
+<li><p>ortholog clusters</p></li>
+<li><p>evolutionary relationships across species.</p></li>
+</ul>
 </div>
-<div class="section level1">
-<h1 id="plot-ribbon-diagram">plot ribbon diagram<a class="anchor" aria-label="anchor" href="#plot-ribbon-diagram"></a>
-</h1>
-<p>orthoRibbon(ortho)</p>
-<pre><code>
-## Input Data
-
-OrthoRibbon requires genomic coordinate information to position chromosomes and genes across species and to draw ribbons connecting orthologous genes.
-
-### Method 1: Supply orthologous gene pairs along with their corresponding genomic information.
-
-### 1. An ortholog table describing gene relationships across species.
-
-Typical fields include:
-
-| Column         | Description               |
-| -------------- | ------------------------- |
-| gene_id1       | gene identifier           |
-| gene_id2       | gene identifier           |
-
-Users can obtain ortholog information from databases or orthogroups searching tools such as:
-
-* [Ensembl](http://www.ensembl.org/)
-
-* [OrthoDB](https://www.orthodb.org/)
-
-* [eggNOG](http://eggnog6.embl.de/)
-
-* [OrthoFinder](https://github.com/OrthoFinder/OrthoFinder)
-
-* [odp](https://github.com/conchoecia/odp)
-
-### 2. Chromosome Length Information
-
-Chromosome length information defines the genomic layout for each species. These data are used to determine the relative sizes and positions of chromosomes in the visualization.
-
-The chromosome length information should be provided as a list, where each element corresponds to a species and is named by the species identifier.
-
-Each element of the list should be a chromosome table containing the following columns:
-
-| Column       | Description                       |
-| ------------ | --------------------------------- |
-| `name`       | Chromosome or scaffold name       |
-| `length`     | Chromosome length (in base pairs) |
-
-### 3. Gene Information
-
-Gene information specifies the genomic coordinates of genes used in the ortholog visualization. These coordinates determine where ribbons will attach on each chromosome.
-
-Gene information should be provided as a `GRanges` object, with `gene_name` and `species` stored as metadata columns, and the gene identifier assigned as the name of each range.
-
-### Method 2: Supply orthologous gene groups along with the corresponding genomic information.
-
-OrthoRibbon expects an ortholog table describing gene relationships across species.
-
-Typical fields include:
-
-| Column         | Description               |
-| -------------- | ------------------------- |
-| species        | species name              |
-| gene_id        | gene identifier           |
-| seq            | chromosome name           |
-| start          | genomic start coordinate  |
-| ortholog_group | ortholog group identifier |
-
-And the chromosome length information as above.
-
-## Visualization
-
-OrthoRibbon generates ribbon diagrams where:
-
-* chromosomes or genomic regions are displayed as tracks
-
-* orthologous genes are connected by ribbons
-
-* ribbons represent cross-species gene relationships
-
-These visualizations help reveal:
-
-* conserved genomic regions
-
-* ortholog clusters
-
-* evolutionary relationships across species.
-
-## Documentation
-
-Full tutorial and examples are available in the vignette:
-
-👉 https://jianhong.github.io/orthoRibbon/articles/orthoRibbon.html
-
-To view the documentation locally:
-
-```{r}
-browseVignettes("orthoRibbon")</code></pre>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>Full tutorial and examples are available in the vignette:</p>
+<p>👉 <a href="https://jianhong.github.io/orthoRibbon/articles/orthoRibbon.html" class="external-link uri">https://jianhong.github.io/orthoRibbon/articles/orthoRibbon.html</a></p>
+<p>To view the documentation locally:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"orthoRibbon"</span><span class="op">)</span></span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
@@ -210,7 +251,6 @@ browseVignettes("orthoRibbon")</code></pre>
 <p>Bug reports and feature requests can be submitted via GitHub <a href="https://github.com/jianhong/orthoRibbon/issues/new/choose" class="external-link">Issues</a>.</p>
 </div>
 </div>
-
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

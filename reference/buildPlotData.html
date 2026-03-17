@@ -18,7 +18,7 @@ informations."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/li
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">orthoRibbon</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@ informations.</p>
 <span>  chr_orders <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  filterByCoordSystem <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  max_links <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  chromosome_order_method <span class="op">=</span> <span class="st">"chr"</span></span>
+<span>  chromosome_order_method <span class="op">=</span> <span class="st">"max"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -110,10 +110,13 @@ The Chromosome information for each species must be a data.frame with columns
 
 
 <dt id="arg-chromosome-order-method">chromosome_order_method<a class="anchor" aria-label="anchor" href="#arg-chromosome-order-method"></a></dt>
-<dd><p>a character string with the name of the
-seriation method or 'chr'.
-If using 'chr', it will try to find the best order by the chromosome
-name. Otherwise see <a href="https://rdrr.io/pkg/seriation/man/seriate.html" class="external-link">seriate</a>. It will be worth to
+<dd><p>A character string with the name of the s
+eriation method or spearman' or 'max'.
+If using 'max', it will try to find the best order by maximal number of
+homologous for each chromosome pairs.
+If using 'spearman', it will try to find the best order by the Spearman
+distance.
+Otherwise see <a href="https://rdrr.io/pkg/seriation/man/seriate.html" class="external-link">seriate</a>. It will be worth to
 try 'TSP' first.</p></dd>
 
 </dl></div>
