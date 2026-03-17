@@ -99,11 +99,11 @@ We will load presaved data.
 extdata <- system.file('extdata', package='orthoRibbon')
 chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
 names(chrom_infos)
-head(chrom_infos[[1]])
+head(chrom_infos[[1]], n=2)
 homologs_df <- readRDS(file.path(extdata, 'homolog_df.human.mouse.zebrafish.rds'))
-head(homologs_df)
+head(homologs_df, n=2)
 genes_gr <- readRDS(file.path(extdata, 'gene.GRanges.obj.rds'))
-head(genes_gr)
+head(genes_gr, n=2)
 ```
 
 
@@ -112,7 +112,7 @@ Step 3. Prepare the plot data.
 ```{r prepareData}
 set.seed(42)
 plotData <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = 'chr',
+                          chromosome_order_method = 'max',
                           max_links=500 # small number for illustration
                           )
 names(plotData)
@@ -135,6 +135,10 @@ chr_order_tsp <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
 # 4. Spectral - uses eigenvectors
 chr_order_spec <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
                           chromosome_order_method = "Spectral")
+
+# 5. Spearman distance
+chr_order_dist <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "spearman")
 
 # 5. customized
 seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
@@ -173,6 +177,8 @@ orthoRibbonPlot(com_name, bezier_ix,
                 plotData$chrom_bars_df,
                 plotData$chrom_label_df)
 # by homologous chromosome names
+# the gene is not ordered by coordinates but ordered by the homologous chromosome names
+## And Here we will show the symbols for each homologous.
 symbol_list_top <- plotData$symbol_list_top
 symbol_list_top$x <- symbol_list_top$xMini
 symbol_list_bottom <- plotData$symbol_list_bottom
@@ -202,9 +208,10 @@ And then load the ortholog data. You can get the ortholog data via tools like
 ```{r load_human_fly_data}
 extdata <- system.file('extdata', package='orthoRibbon')
 chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
-chrom_infos
+names(chrom_infos)
+head(chrom_infos[[1]], n=2)
 homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
-head(homologs_df)
+head(homologs_df, n=2)
 ```
 
 Last, plot the data.
@@ -212,7 +219,7 @@ Last, plot the data.
 ```{r}
 plotData <- buildPlotData(com_name, homologs_df,
                           chrom_infos = chrom_infos,
-                          chromosome_order_method = 'chr',
+                          chromosome_order_method = 'max',
                           max_links=1000)
 
 bezier_mini <- buildBezierDF(plotData$homolog_df_list,
