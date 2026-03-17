@@ -15,10 +15,13 @@
 #' @param chr_orders Chromosome orders for plot.
 #' @param filterByCoordSystem Filter the chromosomes or not.
 #' @param max_links A numeric. The maiximal link number to show in the plot.
-#' @param chromosome_order_method a character string with the name of the
-#' seriation method or 'chr'.
-#'  If using 'chr', it will try to find the best order by the chromosome
-#'  name. Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
+#' @param chromosome_order_method A character string with the name of the s
+#' eriation method or spearman' or 'max'.
+#'  If using 'max', it will try to find the best order by maximal number of
+#'  homologous for each chromosome pairs.
+#'  If using 'spearman', it will try to find the best order by the Spearman
+#'   distance.
+#'  Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 #'  try 'TSP' first.
 #' @return A list with elements "homolog_df_list", "chrom_bars_df",
 #' "chrom_label_df" , "symbol_list_top" and, "symbol_list_bottom" for plot.
@@ -29,7 +32,7 @@
 buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
                           sp_min_chr_size=10000000, chr_orders=NULL,
                           filterByCoordSystem = TRUE, max_links=Inf,
-                          chromosome_order_method='chr'){
+                          chromosome_order_method='max'){
   # Step1 check input
   stopifnot(is.data.frame(homolog_df))
   df_from_flag <- NA

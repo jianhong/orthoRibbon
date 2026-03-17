@@ -7,14 +7,18 @@
 getChrOrders(homolog_df, chrom_infos, method = "TSP")
 }
 \arguments{
-\item{homolog_df}{The data.frame with homologs. The output from function
+\item{homolog_df}{The data.frame with homologous. The output from function
 \link{subsetHomologsByChrom}}
 
 \item{chrom_infos}{A list with the chromosome information data.frame.}
 
 \item{method}{a character string with the name of the seriation method or
-'chr'. If using 'chr', it will try to find the best order by the chromosome
-name. Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
+'spearman' or 'max'.
+If using 'max', it will try to find the best order by maximal number of
+homologous for each chromosome pairs.
+If using 'spearman', it will try to find the best order by the Spearman
+distance.
+Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 try 'TSP' first.}
 }
 \value{
@@ -22,5 +26,5 @@ A list with the ordered chromosome names
 }
 \description{
 The best order of the chromosomes decided by the distance matrix.
-The distance matrix among chromosomes are the count of the homologs
+The distance matrix among chromosomes are the count of the homologous
 }

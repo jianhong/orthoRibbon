@@ -20,7 +20,7 @@
 #' @param show_symbol A logical value. Show the symbols or not.
 #' @return A ggolot object
 #' @importFrom ggplot2 ggplot aes geom_line geom_text scale_y_reverse xlim
-#'  theme_minimal element_blank theme element_text
+#'  theme_minimal element_blank theme element_text coord_cartesian
 #' @importFrom rlang .data
 #' @importFrom ggforce geom_bezier2
 #' @importFrom ggrepel geom_text_repel
@@ -99,7 +99,7 @@ orthoRibbonPlot <- function(com_name,
     p <- p + scale_y_reverse(breaks = seq(0, length(com_name)-1),
                              labels = com_name)
   }
-  p <- p + xlim(xlim[1], xlim[2]) +
+  p <- p + coord_cartesian(xlim=xlim) +
     theme_minimal() +
     theme(panel.grid = element_blank(),
           axis.title = element_blank(),

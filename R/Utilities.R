@@ -305,16 +305,73 @@ subsetHomologsByChrom <- function(homolog_df, chrom_infos, max_links=5000){
   return(homolog_df)
 }
 
+#' Assign each column to its best row, ensuring no duplicate rows
+#' Greedy approach: process columns by their max value (highest first)
+#' @param count_matrix the count table.
+get_unique_max_rows <- function(count_matrix) {
+  # Get max row for each column with the max value
+  col_max <- lapply(colnames(count_matrix), function(col) {
+    max_row <- rownames(count_matrix)[which.max(count_matrix[, col])]
+    max_val <- max(count_matrix[, col])
+    c(row = max_row, value = max_val, col = col)
+  })
+
+  col_max_df <- as.data.frame(do.call(rbind, col_max), stringsAsFactors = FALSE)
+  col_max_df$value <- as.numeric(col_max_df$value)
+
+  # Sort by value (highest first) - greedy assignment
+  col_max_df <- col_max_df[order(-col_max_df$value), ]
+
+  # Assign uniquely
+  assigned_rows <- character()
+  result <- data.frame(column = character(),
+                       row = character(),
+                       value = numeric(),
+                       stringsAsFactors = FALSE)
+
+  for (i in seq.int(nrow(col_max_df))) {
+    col_name <- col_max_df$col[i]
+
+    # Get available rows (not yet assigned)
+    available_rows <- setdiff(rownames(count_matrix), assigned_rows)
+
+    if (length(available_rows) == 0) {
+      #warning(paste("No available rows left for column:", col_name))
+      next
+    }
+
+    # Get best available row for this column
+    best_row <- available_rows[which.max(count_matrix[available_rows, col_name])]
+    best_val <- count_matrix[best_row, col_name]
+
+    result <- rbind(result,
+                    data.frame(column = col_name,
+                               row = best_row,
+                               value = best_val))
+
+    assigned_rows <- c(assigned_rows, best_row)
+  }
+  # set to original order
+  result <- result[match(colnames(count_matrix), result[, 'column']), ]
+
+  return(result)
+}
+
+
 #' Get the best order of the chromosomes
 #' @description
 #' The best order of the chromosomes decided by the distance matrix.
-#' The distance matrix among chromosomes are the count of the homologs
-#' @param homolog_df The data.frame with homologs. The output from function
+#' The distance matrix among chromosomes are the count of the homologous
+#' @param homolog_df The data.frame with homologous. The output from function
 #' \link{subsetHomologsByChrom}
 #' @param chrom_infos A list with the chromosome information data.frame.
 #' @param method a character string with the name of the seriation method or
-#'  'chr'. If using 'chr', it will try to find the best order by the chromosome
-#'  name. Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
+#'  'spearman' or 'max'.
+#'  If using 'max', it will try to find the best order by maximal number of
+#'  homologous for each chromosome pairs.
+#'  If using 'spearman', it will try to find the best order by the Spearman
+#'   distance.
+#'  Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 #'  try 'TSP' first.
 #' @return A list with the ordered chromosome names
 #' @importFrom GenomeInfoDb sortSeqlevels
@@ -352,27 +409,38 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
                         # adjust by weight
                         rs <- rowSums(cur_dist)
                         cs <- colSums(cur_dist)
-                        cur_dist <- cur_dist / (outer(rs, cs, "+"))
-                        if(method=='chr'){
-                          ## always set the second ordered by chromosome name
-                          hc <- hclust(dist(cur_dist), method = "complete")
+                        if(method=='max'){
+                          ords_tbl <- get_unique_max_rows(cur_dist)
                           ords <- list(
-                            sub(paste0(p[1], ' '), '',
-                                rownames(cur_dist)[hc$order]),
+                            sub(paste0(p[1], ' '), '', ords_tbl$row),
                             sub(paste0(p[2], ' '), '', chr_b)
                           )
                         }else{
-                          row_order <- seriate(
-                            as.dist(1 - cor(t(cur_dist), method = "spearman")),
-                            method = method)
-                          col_order <- seriate(
-                            as.dist(1 - cor(cur_dist, method = "spearman")),
-                            method = method)
-                          ords <- list(
-                            sub(paste0(p[1], ' '), '',
-                                rownames(cur_dist)[get_order(row_order)]),
-                            sub(paste0(p[2], ' '), '',
-                                colnames(cur_dist)[get_order(col_order)]))
+                          cur_dist <- cur_dist / (outer(rs, cs, "+"))
+                          if(method=='spearman'){
+                            ## always set the second ordered by chromosome name
+                            hc <- hclust(
+                              as.dist(1 - cor(t(cur_dist),
+                                              method = "spearman")),
+                              method = "complete")
+                            ords <- list(
+                              sub(paste0(p[1], ' '), '',
+                                  rownames(cur_dist)[hc$order]),
+                              sub(paste0(p[2], ' '), '', chr_b)
+                            )
+                          }else{
+                            row_order <- seriate(
+                              as.dist(1 - cor(t(cur_dist), method = "spearman")),
+                              method = method)
+                            col_order <- seriate(
+                              as.dist(1 - cor(cur_dist, method = "spearman")),
+                              method = method)
+                            ords <- list(
+                              sub(paste0(p[1], ' '), '',
+                                  rownames(cur_dist)[get_order(row_order)]),
+                              sub(paste0(p[2], ' '), '',
+                                  colnames(cur_dist)[get_order(col_order)]))
+                          }
                         }
                         names(ords) <- p
                         return(ords)

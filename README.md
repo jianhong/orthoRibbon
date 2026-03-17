@@ -22,7 +22,7 @@ Generate publication-quality figures
 
 Install the development version from GitHub:
 
-```{r}
+```r
 install.packages("remotes")
 remotes::install_github("jianhong/orthoRibbon",
                         build_vignettes = TRUE,
@@ -33,7 +33,7 @@ remotes::install_github("jianhong/orthoRibbon",
 
 Example workflow to visualize orthologous genes across species.
 
-```{r}
+```r
 library(orthoRibbon)
 
 # example ortholog table
@@ -59,7 +59,7 @@ OrthoRibbon requires genomic coordinate information to position chromosomes and 
 Typical fields include:
 
 | Column         | Description               |
-| -------------- | ------------------------- |
+| :------------- | :------------------------ |
 | gene_id1       | gene identifier           |
 | gene_id2       | gene identifier           |
 
@@ -84,7 +84,7 @@ The chromosome length information should be provided as a list, where each eleme
 Each element of the list should be a chromosome table containing the following columns:
 
 | Column       | Description                       |
-| ------------ | --------------------------------- |
+| :----------- | :-------------------------------- |
 | `name`       | Chromosome or scaffold name       |
 | `length`     | Chromosome length (in base pairs) |
 
@@ -101,7 +101,7 @@ OrthoRibbon expects an ortholog table describing gene relationships across speci
 Typical fields include:
 
 | Column         | Description               |
-| -------------- | ------------------------- |
+| :------------- | :------------------------ |
 | species        | species name              |
 | gene_id        | gene identifier           |
 | seq            | chromosome name           |
@@ -136,7 +136,7 @@ Full tutorial and examples are available in the vignette:
 
 To view the documentation locally:
 
-```{r}
+```r
 browseVignettes("orthoRibbon")
 ```
 

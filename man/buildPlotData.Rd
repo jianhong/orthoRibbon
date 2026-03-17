@@ -13,7 +13,7 @@ buildPlotData(
   chr_orders = NULL,
   filterByCoordSystem = TRUE,
   max_links = Inf,
-  chromosome_order_method = "chr"
+  chromosome_order_method = "max"
 )
 }
 \arguments{
@@ -38,10 +38,13 @@ The Chromosome information for each species must be a data.frame with columns
 
 \item{max_links}{A numeric. The maiximal link number to show in the plot.}
 
-\item{chromosome_order_method}{a character string with the name of the
-seriation method or 'chr'.
-If using 'chr', it will try to find the best order by the chromosome
-name. Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
+\item{chromosome_order_method}{A character string with the name of the s
+eriation method or spearman' or 'max'.
+If using 'max', it will try to find the best order by maximal number of
+homologous for each chromosome pairs.
+If using 'spearman', it will try to find the best order by the Spearman
+distance.
+Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 try 'TSP' first.}
 }
 \value{
