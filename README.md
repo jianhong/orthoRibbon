@@ -1,4 +1,4 @@
-# orthoRibbon <img src="man/figures/logo.png" align="right" height="200" />
+# orthoRibbon <img src="man/figures/logo.png" align="right" style="width:200px; margin-left:20px;" />
 
 ## Ribbon-based visualization of orthologous genes across species
 
