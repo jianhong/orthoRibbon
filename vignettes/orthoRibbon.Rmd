@@ -140,7 +140,7 @@ chr_order_spec <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
 chr_order_dist <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
                           chromosome_order_method = "spearman")
 
-# 5. customized
+# 6. customized
 seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
 chr_order_manu <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
                                 chr_orders=seq_names)
@@ -194,6 +194,8 @@ orthoRibbonPlot(com_name, bezier_mini,
 
 ## Start from the ortholog groups information
 
+Another OrthoRibbon supported workflow starts from ortholog group information, where each group contains genes from different species that are inferred to be orthologous. The following examples demonstrate how to generate ribbon diagrams using ortholog groups by retrieving the corresponding gene annotations and genomic coordinates for visualization.
+
 First we prepare the species abbreviation.
 ```{r human_fly_cn}
 com_name <- c('hsapiens', 'dmelanogaster')
@@ -210,18 +212,21 @@ extdata <- system.file('extdata', package='orthoRibbon')
 chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
 names(chrom_infos)
 head(chrom_infos[[1]], n=2)
+## the homologs_df must contain columns 'gene_id', and 'ortholog_group'.
 homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
 head(homologs_df, n=2)
 ```
 
-Last, plot the data.
+Finally, prepare the plotting data and generate the ribbon diagram.
+
+If the `homologs_df` data frame already contains gene location information (specifically, the "species", "seq", and "start" columns), the `genes_gr` argument can be omitted. Otherwise, gene annotations must be provided via the `genes_gr` argument as a `GRanges` object, with "gene_name" and "species" stored as metadata columns.
 
 ```{r}
 plotData <- buildPlotData(com_name, homologs_df,
                           chrom_infos = chrom_infos,
                           chromosome_order_method = 'max',
                           max_links=1000)
-
+ 
 bezier_mini <- buildBezierDF(plotData$homolog_df_list,
                              colname1='topMini_finalOffset',
                              colname2='bottomMini_finalOffset')
