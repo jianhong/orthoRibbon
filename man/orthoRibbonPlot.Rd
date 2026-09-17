@@ -22,7 +22,7 @@ orthoRibbonPlot(
 )
 }
 \arguments{
-\item{com_name}{Species abbreviations eg. "hsapiens", "mmusculus", "drerio".}
+\item{com_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".}
 
 \item{bezier_df}{A data.frame. The coordinates for Bezier curves.
 It must have columns "x", "y", "id", and "col".
@@ -37,7 +37,7 @@ It must have columns "x", "y" and "labels"}
 
 \item{symbol_list_top, symbol_list_bottom}{The data.frame for the gene labels}
 
-\item{link_lwd, chr_lwd}{The line width for Bezier curve, chromsome bar,}
+\item{link_lwd, chr_lwd}{The line width for Bezier curve, chromosome bar,}
 
 \item{chr_lineend}{The line end for chromosome bar.}
 
@@ -49,7 +49,7 @@ species, and symbols.}
 \item{show_symbol}{A logical value. Show the symbols or not.}
 }
 \value{
-A ggolot object
+A ggplot object
 }
 \description{
 Plot data by ribbon plot.

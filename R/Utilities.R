@@ -15,8 +15,8 @@ add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
   stopifnot(is.character(symbol_colunm_name))
   stopifnot("'symbol_colunm_name' must be metadata column name of 'genes_gr'"=
               symbol_colunm_name %in% colnames(mcols(genes_gr)))
-  stopifnot(all(homolog_df[, 1] %in% names(genes_gr)))
-  stopifnot(all(homolog_df[, 2] %in% names(genes_gr)))
+  stopifnot(all(homolog_df[, 1, drop=TRUE] %in% names(genes_gr)))
+  stopifnot(all(homolog_df[, 2, drop=TRUE] %in% names(genes_gr)))
   ## make sure the first two columns of homolog_df be gene_id1 and gene_id2
   homolog_df <- as.data.frame(homolog_df)
   colnames(homolog_df)[c(1, 2)] <- c('gene_id1', 'gene_id2')
@@ -35,10 +35,10 @@ add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
   return(homolog_df)
 }
 
-#' Retrieve all the ensembl gene IDs by given species abbreviations
-#' @param com_name species abbreviations eg. "hsapiens", "mmusculus", "drerio"
+#' Retrieve all the Ensembl gene IDs by given species abbreviations
+#' @param com_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param marts A named list with the Mart object for each species
-#' @return A list of character with ensembl gene IDs.
+#' @return A list of character with Ensembl gene IDs.
 #' @export
 #' @importFrom geneClusterPattern guessSpecies
 #' @importFrom biomaRt getBM
@@ -80,7 +80,7 @@ getGeneIDs <- function(com_name, marts){
 }
 
 #' Filter chromosomes
-#' @param chrInfo A data.frame retrived from ensembl by function
+#' @param chrInfo A data.frame retrieved from Ensembl by function
 #' getChromInfoFromEnsembl.
 #' @param sp_min_chr_size The minimal size for a chromosome.
 filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
@@ -112,7 +112,7 @@ filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
 
 #' Retrieve the homolog pairs
 #' @param ids A named list with the gene ids for each species
-#' @param com_name species abbreviations eg. "hsapiens", "mmusculus", "drerio"
+#' @param com_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param marts A named list with the Mart object for each species
 #' @return A list with homolog GRanges.
 #' @export
@@ -148,14 +148,15 @@ getHomologIDs <- function(homologs){
     mc <- lapply(hl, mcols)
     mc <- lapply(mc, FUN=function(.ele){
       .ele$ensembl_gene_ids <- rownames(.ele)
-      .ele[, c('ensembl_gene_ids', 'homolog_ensembl_gene_ids')]
+      .ele[, c('ensembl_gene_ids', 'homolog_ensembl_gene_ids'), drop=FALSE]
     })
     if(length(mc)>1){
       ## bridged homologs
       cmb <- combn(seq_along(mc), 2, simplify = FALSE)
       mc_pair <- lapply(cmb, function(.ele){
         ## only keep the bridged homologs
-        merge(mc[[.ele[1]]], mc[[.ele[2]]], by='ensembl_gene_ids')[, c(2, 3)]
+        merge(mc[[.ele[1]]], mc[[.ele[2]]],
+              by='ensembl_gene_ids')[, c(2, 3), drop=FALSE]
       })
       ## fix the column names
       mc <- lapply(c(mc, mc_pair), function(.ele){
@@ -278,7 +279,7 @@ addGeneInfo <- function(homolog_df, genes_gr, type='ortholog_pair_only'){
 #' @param homolog_df The data.frame with homologs. The output from function
 #' \link{addGeneInfo}
 #' @param chrom_infos A list with the chromosome information data.frame.
-#' @param max_links A numeric. The maiximal link number to show in the plot.
+#' @param max_links A numeric. The maximal link number to show in the plot.
 #' @return A data.frame with filtered homologs
 subsetHomologsByChrom <- function(homolog_df, chrom_infos, max_links=5000){
   stopifnot(is.list(chrom_infos))
@@ -311,8 +312,8 @@ subsetHomologsByChrom <- function(homolog_df, chrom_infos, max_links=5000){
 get_unique_max_rows <- function(count_matrix) {
   # Get max row for each column with the max value
   col_max <- lapply(colnames(count_matrix), function(col) {
-    max_row <- rownames(count_matrix)[which.max(count_matrix[, col])]
-    max_val <- max(count_matrix[, col])
+    max_row <- rownames(count_matrix)[which.max(count_matrix[, col, drop=TRUE])]
+    max_val <- max(count_matrix[, col, drop=TRUE])
     c(row = max_row, value = max_val, col = col)
   })
 
@@ -320,7 +321,7 @@ get_unique_max_rows <- function(count_matrix) {
   col_max_df$value <- as.numeric(col_max_df$value)
 
   # Sort by value (highest first) - greedy assignment
-  col_max_df <- col_max_df[order(-col_max_df$value), ]
+  col_max_df <- col_max_df[order(-col_max_df$value), , drop=FALSE]
 
   # Assign uniquely
   assigned_rows <- character()
@@ -341,8 +342,9 @@ get_unique_max_rows <- function(count_matrix) {
     }
 
     # Get best available row for this column
-    best_row <- available_rows[which.max(count_matrix[available_rows, col_name])]
-    best_val <- count_matrix[best_row, col_name]
+    best_row <- available_rows[which.max(
+      count_matrix[available_rows, col_name])]
+    best_val <- count_matrix[best_row, col_name, drop=TRUE]
 
     result <- rbind(result,
                     data.frame(column = col_name,
@@ -352,7 +354,8 @@ get_unique_max_rows <- function(count_matrix) {
     assigned_rows <- c(assigned_rows, best_row)
   }
   # set to original order
-  result <- result[match(colnames(count_matrix), result[, 'column']), ]
+  result <- result[match(colnames(count_matrix), result[, 'column']), ,
+                   drop=FALSE]
 
   return(result)
 }
@@ -382,7 +385,7 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
   stopifnot(is.data.frame(homolog_df))
   stopifnot(all(c('chr_sp1', 'chr_sp2') %in%
                   colnames(homolog_df)))
-  chr_dist <- table(homolog_df[, c('chr_sp1', 'chr_sp2')])
+  chr_dist <- table(homolog_df[, c('chr_sp1', 'chr_sp2'), drop=FALSE])
   used_seqs <- lapply(chrom_infos, function(.ele){
     sortSeqlevels(.ele$name)
   })
@@ -548,11 +551,12 @@ buildHomologLinksDF <- function(homolog_df, chrom_df){
     x$sp_bottom <- .ele[2]
     # Calculate positions for index plotting (top species)
     chromdf <- chrom_df[[.ele[1]]]
-    x$top_ChromSize <- chromdf[match(x$seq_top, chromdf$chrom), 'chrsize']
+    x$top_ChromSize <- chromdf[match(x$seq_top, chromdf$chrom), 'chrsize',
+                               drop=TRUE]
     x$top_ChromPercent <-
-      chromdf[match(x$seq_top, chromdf$chrom), 'chrPlotPercent']
+      chromdf[match(x$seq_top, chromdf$chrom), 'chrPlotPercent', drop=TRUE]
     x$top_ChromOffset <-
-      chromdf[match(x$seq_top, chromdf$chrom), 'chrPlotOffset']
+      chromdf[match(x$seq_top, chromdf$chrom), 'chrPlotOffset', drop=TRUE]
     x$topIx <- ave(x$start_top, x$seq_top, FUN = function(i)
       rank(i, ties.method = "first")) ##
     x$topIx_Size <- ave(x$start_top, x$seq_top, FUN = length)
@@ -565,11 +569,11 @@ buildHomologLinksDF <- function(homolog_df, chrom_df){
     # Calculate positions for index plotting (bottom species)
     chromdf <- chrom_df[[.ele[2]]]
     x$bottom_ChromSize <-
-      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrsize']
+      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrsize', drop=TRUE]
     x$bottom_ChromPercent <-
-      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrPlotPercent']
+      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrPlotPercent', drop=TRUE]
     x$bottom_ChromOffset <-
-      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrPlotOffset']
+      chromdf[match(x$seq_bottom, chromdf$chrom), 'chrPlotOffset', drop=TRUE]
     x$bottomIx <- ave(x$start_bottom, x$seq_bottom,
                       FUN = function(i) rank(i, ties.method = "first"))
     x$bottomIx_Size <- ave(x$start_bottom, x$seq_bottom, FUN = length)
@@ -615,7 +619,7 @@ create_bezier_points <- function(finalOffset1, finalOffset2, i,
 
 create_bezier_matrix <- function(data, i, colname1, colname2,
                                  col1='seq_top', col2='seq_bottom', cl1=4){
-  x <- apply(data[, c(colname1, colname2, col1, col2)],
+  x <- apply(data[, c(colname1, colname2, col1, col2), drop=FALSE],
              1, function(.ele){
                create_bezier_points(.ele[1], .ele[2], i,
                                     .ele[3], .ele[4],
@@ -627,13 +631,13 @@ create_bezier_matrix <- function(data, i, colname1, colname2,
   x
 }
 
-#' Build the data.frame for Bezier curve
+#' Build the data.frame for B\'ezier curve
 #' @param homolog_df_list A list with the data.frame of plot data for homologs.
 #' @param colname1,colname2 The column names for top and bottom final positions.
 #' @param col1,col2 The column names for color.
-#' @param cl1 A nummeric. The Bezier curve is created with two control points.
+#' @param cl1 A numeric. The B\'ezier curve is created with two control points.
 #' And cl1 should be no more than 4 and no less than 0.
-#' If it is set to 4, all points in Bezier curve will be set to col1.
+#' If it is set to 4, all points in B\'ezier curve will be set to col1.
 #' If it is set to 3, the top point, two control points will be set to col1 and
 #' the bottom point will be set to col2.
 #' If it is set to 2, the top point, top control point will be set to col1 and

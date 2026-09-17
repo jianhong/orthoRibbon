@@ -12,7 +12,7 @@ subsetHomologsByChrom(homolog_df, chrom_infos, max_links = 5000)
 
 \item{chrom_infos}{A list with the chromosome information data.frame.}
 
-\item{max_links}{A numeric. The maiximal link number to show in the plot.}
+\item{max_links}{A numeric. The maximal link number to show in the plot.}
 }
 \value{
 A data.frame with filtered homologs

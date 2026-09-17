@@ -2,7 +2,7 @@
 #' @description
 #' Plot data by ribbon plot.
 #'
-#' @param com_name Species abbreviations eg. "hsapiens", "mmusculus", "drerio".
+#' @param com_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".
 #' @param bezier_df A data.frame. The coordinates for Bezier curves.
 #' It must have columns "x", "y", "id", and "col".
 #' The "id" column saves group id for each pair of homologs.
@@ -12,13 +12,13 @@
 #' @param chrom_label_df A data.frame. The coordinates for chromosome names.
 #' It must have columns "x", "y" and "labels"
 #' @param symbol_list_top,symbol_list_bottom The data.frame for the gene labels
-#' @param link_lwd,chr_lwd The line width for Bezier curve, chromsome bar,
+#' @param link_lwd,chr_lwd The line width for Bezier curve, chromosome bar,
 #' @param chr_lineend The line end for chromosome bar.
 #' @param chr_size,label_size,symbol_size The size for chromosome label,
 #' species, and symbols.
 #' @param xlim Two numeric values, specifying the x limit of the scale.
 #' @param show_symbol A logical value. Show the symbols or not.
-#' @return A ggolot object
+#' @return A ggplot object
 #' @importFrom ggplot2 ggplot aes geom_line geom_text scale_y_reverse xlim
 #'  theme_minimal element_blank theme element_text coord_cartesian
 #' @importFrom rlang .data

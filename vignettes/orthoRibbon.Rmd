@@ -23,7 +23,7 @@ output:
     fig_caption: true
 ---
 
-```{r, echo=FALSE, results="hide", warning=FALSE}
+```{r prepare, echo=FALSE, results="hide", warning=FALSE}
 knitr::opts_chunk$set(
     warning = FALSE, message = FALSE,
     fig.width = 12, fig.height = 4,
@@ -41,7 +41,7 @@ OrthoRibbon supports flexible input formats and can integrate ortholog annotatio
 
 ## Installation
 
-```{r, eval=FALSE}
+```{r installation, eval=FALSE}
 if (!require("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }
@@ -74,10 +74,10 @@ com_name
 Step 2. Retrieve chromosome, homologs, and gene coordinates via Biomart.
 
 ```{r retrieveHomologs,eval=FALSE}
-# prepare mart for biomart
+# prepare mart for BioMart
 marts <- geneClusterPattern::guessSpecies(com_name, output='mart')
 
-# prepare all the ensembl ids
+# prepare all the Ensembl ids
 ids <- orthoRibbon::getGeneIDs(com_name, marts)
 
 # get chromosome info
@@ -221,7 +221,7 @@ Finally, prepare the plotting data and generate the ribbon diagram.
 
 If the `homologs_df` data frame already contains gene location information (specifically, the "species", "seq", and "start" columns), the `genes_gr` argument can be omitted. Otherwise, gene annotations must be provided via the `genes_gr` argument as a `GRanges` object, with "gene_name" and "species" stored as metadata columns.
 
-```{r}
+```{r plot4df}
 plotData <- buildPlotData(com_name, homologs_df,
                           chrom_infos = chrom_infos,
                           chromosome_order_method = 'max',
@@ -239,7 +239,7 @@ orthoRibbonPlot(com_name, bezier_mini,
 
 ## SessionInfo
 
-```{r pressure, echo=FALSE}
+```{r sessioninfo, echo=FALSE}
 sessionInfo()
 ```
 

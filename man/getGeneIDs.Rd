@@ -2,18 +2,18 @@
 % Please edit documentation in R/Utilities.R
 \name{getGeneIDs}
 \alias{getGeneIDs}
-\title{Retrieve all the ensembl gene IDs by given species abbreviations}
+\title{Retrieve all the Ensembl gene IDs by given species abbreviations}
 \usage{
 getGeneIDs(com_name, marts)
 }
 \arguments{
-\item{com_name}{species abbreviations eg. "hsapiens", "mmusculus", "drerio"}
+\item{com_name}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 
 \item{marts}{A named list with the Mart object for each species}
 }
 \value{
-A list of character with ensembl gene IDs.
+A list of character with Ensembl gene IDs.
 }
 \description{
-Retrieve all the ensembl gene IDs by given species abbreviations
+Retrieve all the Ensembl gene IDs by given species abbreviations
 }

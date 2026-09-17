@@ -17,7 +17,7 @@ buildPlotData(
 )
 }
 \arguments{
-\item{com_name}{Species abbreviations eg. "hsapiens", "mmusculus", "drerio"}
+\item{com_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 
 \item{homolog_df}{The data.frame for homologs with column names
 "gene_id1", "gene_id2".}
@@ -36,10 +36,10 @@ The Chromosome information for each species must be a data.frame with columns
 
 \item{filterByCoordSystem}{Filter the chromosomes or not.}
 
-\item{max_links}{A numeric. The maiximal link number to show in the plot.}
+\item{max_links}{A numeric. The maximal link number to show in the plot.}
 
-\item{chromosome_order_method}{A character string with the name of the s
-eriation method or spearman' or 'max'.
+\item{chromosome_order_method}{A character string with the name of the
+seriation method or 'spearman' or 'max'.
 If using 'max', it will try to find the best order by maximal number of
 homologous for each chromosome pairs.
 If using 'spearman', it will try to find the best order by the Spearman

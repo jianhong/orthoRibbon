@@ -7,7 +7,7 @@
 filterChrom(chrInfo, sp_min_chr_size = 1e+07)
 }
 \arguments{
-\item{chrInfo}{A data.frame retrived from ensembl by function
+\item{chrInfo}{A data.frame retrieved from Ensembl by function
 getChromInfoFromEnsembl.}
 
 \item{sp_min_chr_size}{The minimal size for a chromosome.}

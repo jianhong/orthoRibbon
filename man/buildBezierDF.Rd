@@ -2,7 +2,7 @@
 % Please edit documentation in R/Utilities.R
 \name{buildBezierDF}
 \alias{buildBezierDF}
-\title{Build the data.frame for Bezier curve}
+\title{Build the data.frame for B\'ezier curve}
 \usage{
 buildBezierDF(
   homolog_df_list,
@@ -20,9 +20,9 @@ buildBezierDF(
 
 \item{col1, col2}{The column names for color.}
 
-\item{cl1}{A nummeric. The Bezier curve is created with two control points.
+\item{cl1}{A numeric. The B\'ezier curve is created with two control points.
 And cl1 should be no more than 4 and no less than 0.
-If it is set to 4, all points in Bezier curve will be set to col1.
+If it is set to 4, all points in B\'ezier curve will be set to col1.
 If it is set to 3, the top point, two control points will be set to col1 and
 the bottom point will be set to col2.
 If it is set to 2, the top point, top control point will be set to col1 and
@@ -31,7 +31,7 @@ If it is set to 1, the top point will be set to col1 and others col2.
 If it is set to 0, all points will be set to col2.}
 }
 \description{
-Build the data.frame for Bezier curve
+Build the data.frame for B\'ezier curve
 }
 \examples{
 # example code

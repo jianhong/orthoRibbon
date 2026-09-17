@@ -2,7 +2,7 @@
 #' @description
 #' Build the plot data from homolog data.frame, gene annotations and chromosome
 #' informations.
-#' @param com_name Species abbreviations eg. "hsapiens", "mmusculus", "drerio"
+#' @param com_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param homolog_df The data.frame for homologs with column names
 #' "gene_id1", "gene_id2".
 #' @param genes_gr A GRanges object for genes. It must contain the information
@@ -14,9 +14,9 @@
 #' @param sp_min_chr_size The minimal chromosome size.
 #' @param chr_orders Chromosome orders for plot.
 #' @param filterByCoordSystem Filter the chromosomes or not.
-#' @param max_links A numeric. The maiximal link number to show in the plot.
-#' @param chromosome_order_method A character string with the name of the s
-#' eriation method or spearman' or 'max'.
+#' @param max_links A numeric. The maximal link number to show in the plot.
+#' @param chromosome_order_method A character string with the name of the
+#' seriation method or 'spearman' or 'max'.
 #'  If using 'max', it will try to find the best order by maximal number of
 #'  homologous for each chromosome pairs.
 #'  If using 'spearman', it will try to find the best order by the Spearman
