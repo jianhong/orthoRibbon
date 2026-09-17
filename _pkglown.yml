@@ -1,0 +1,16 @@
+url: https://jianhong.github.io/orthoRibbon
+
+template:
+  params:
+    bootswatch: flatly
+  logo: man/figures/logo.png
+
+home:
+  title: "orthoRibbon"
+  type: inverse
+
+
+navbar:
+  right:
+   - icon: fa-github
+     href: https://github.com/jianhong/orthoRibbon
