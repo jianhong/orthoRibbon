@@ -2,7 +2,7 @@
 #' @description
 #' Build the plot data from homolog data.frame, gene annotations and chromosome
 #' informations.
-#' @param com_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
+#' @param common_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param homolog_df The data.frame for homologs with column names
 #' "gene_id1", "gene_id2".
 #' @param genes_gr A GRanges object for genes. It must contain the information
@@ -24,12 +24,12 @@
 #'  Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 #'  try 'TSP' first.
 #' @return A list with elements "homolog_df_list", "chrom_bars_df",
-#' "chrom_label_df" , "symbol_list_top" and, "symbol_list_bottom" for plot.
+#' "chrom_label_df" , "symbol_df_top" and, "symbol_df_bottom" for plot.
 #' @export
 #' @examples
 #' # example code
 #'
-buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
+buildPlotData <- function(common_name, homolog_df, genes_gr, chrom_infos,
                           sp_min_chr_size=10000000, chr_orders=NULL,
                           filterByCoordSystem = TRUE, max_links=Inf,
                           chromosome_order_method='max'){
@@ -66,8 +66,8 @@ buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
     stopifnot('chromosome info must have columns "name" and "length"'=
                 all(c('name', 'length') %in% colnames(chrInfo)))
   })
-  stopifnot('The names of "com_name" and "chrom_infos" must be identical'=
-              identical(names(com_name), names(chrom_infos)))
+  stopifnot('The names of "common_name" and "chrom_infos" must be identical'=
+              identical(names(common_name), names(chrom_infos)))
   stopifnot(is.numeric(sp_min_chr_size))
   stopifnot(is.character(chromosome_order_method))
 
@@ -87,7 +87,7 @@ buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
                                       max_links=max_links)
 
   # Step4 order the chromosome names if user does not provided
-  if(!all(com_name %in% names(chr_orders))){
+  if(!all(common_name %in% names(chr_orders))){
     chr_orders <- getChrOrders(homolog_df, chrom_infos,
                                method = chromosome_order_method)
   }
@@ -103,17 +103,18 @@ buildPlotData <- function(com_name, homolog_df, genes_gr, chrom_infos,
   chrom_label_df <- buildChromLabelDF(chrom_bars_df)
 
   # Step8 # create symbol labels
-  symbol_list_top <- buildSymbolList(homolog_df_list[[1]], y=0)
-  symbol_list_bottom <-
+  symbol_df_top <- buildSymbolList(homolog_df_list[[1]], y=0)
+  symbol_df_bottom <-
     buildSymbolList(homolog_df_list[[length(homolog_df_list)]],
                     y=length(homolog_df_list), topX=FALSE)
 
-  return(list(
+  return(HomologPlotData(
     homolog_df_list = homolog_df_list,
     chrom_bars_df = chrom_bars_df,
     chrom_label_df = chrom_label_df,
-    symbol_list_top = symbol_list_top,
-    symbol_list_bottom = symbol_list_bottom
+    symbol_df_top = symbol_df_top,
+    symbol_df_bottom = symbol_df_bottom,
+    common_name = common_name
   ))
 }
 

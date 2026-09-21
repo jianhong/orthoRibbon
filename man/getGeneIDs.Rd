@@ -4,10 +4,10 @@
 \alias{getGeneIDs}
 \title{Retrieve all the Ensembl gene IDs by given species abbreviations}
 \usage{
-getGeneIDs(com_name, marts)
+getGeneIDs(common_name, marts)
 }
 \arguments{
-\item{com_name}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
+\item{common_name}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 
 \item{marts}{A named list with the Mart object for each species}
 }

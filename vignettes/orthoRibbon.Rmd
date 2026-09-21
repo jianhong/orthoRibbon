@@ -50,7 +50,7 @@ BiocManager::install("jianhong/orthoRibbon")
 
 ## Quick start
 
-There are five main steps to visualize your data with `orthoRibbon`:
+There are six main steps to visualize your data with `orthoRibbon`:
 
 Step 1. Load the required library.
 ```{r loadlibrary,warning = FALSE,message=FALSE}
@@ -62,147 +62,17 @@ library(GenomeInfoDb)
 Step 2. Define the species abbreviation. 
 They are abbreviated species identifiers derived from the binomial (Latin) 
 species names. You can try to guess it from common names.
-The plot order is decided by the order of your input show as 'com_name' here. 
+The plot order is decided by the order of your input show as 'common_name' here. 
 
 ```{r getAbbreviations}
-com_name <- geneClusterPattern::guessSpecies(
-  c('human', 'house mouse', 'zebrafish'))
-names(com_name) <- com_name # must assign the names.
-com_name
+common_name <- geneClusterPattern::guessSpecies(
+  c('human', 'fruit fly'))
+names(common_name) <- common_name # must assign the names.
+common_name
 ```
 
-Step 2. Retrieve chromosome, homologs, and gene coordinates via Biomart.
-
-```{r retrieveHomologs,eval=FALSE}
-# prepare mart for BioMart
-marts <- geneClusterPattern::guessSpecies(com_name, output='mart')
-
-# prepare all the Ensembl ids
-ids <- orthoRibbon::getGeneIDs(com_name, marts)
-
-# get chromosome info
-chrom_infos<- lapply(com_name, GenomeInfoDb::getChromInfoFromEnsembl)
-
-# retrieve all the homologs
-homologs <- orthoRibbon::getHomologGRs(ids, com_name, marts)
-
-# retrieve all the gene ranges
-genes_gr <- orthoRibbon::getGeneGRs(ids, marts, homologs)
-
-# reformat the homologs to data.frame
-homologs_df <- getHomologIDs(homologs)
-```
-
-Since this step retrieve information via "biomaRt", it will take some time.
-We will load presaved data.
-```{r loadData}
-extdata <- system.file('extdata', package='orthoRibbon')
-chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
-names(chrom_infos)
-head(chrom_infos[[1]], n=2)
-homologs_df <- readRDS(file.path(extdata, 'homolog_df.human.mouse.zebrafish.rds'))
-head(homologs_df, n=2)
-genes_gr <- readRDS(file.path(extdata, 'gene.GRanges.obj.rds'))
-head(genes_gr, n=2)
-```
-
-
-Step 3. Prepare the plot data.
-
-```{r prepareData}
-set.seed(42)
-plotData <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = 'max',
-                          max_links=500 # small number for illustration
-                          )
-names(plotData)
-```
-You may want to try different methods to set the chromosome orders.
-```{r otherOrderMethods,eval=FALSE}
-# Different methods optimize different criteria:
-# 1. GW (Gruvaeus-Wainer) - minimizes gradient measure
-chr_order_gw <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = "GW")
-
-# 2. OLO (Optimal Leaf Ordering) - optimal for dendrograms
-chr_order_olo <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = "OLO")
-
-# 3. TSP (Traveling Salesman Problem) - minimizes path length
-chr_order_tsp <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = "TSP")
-
-# 4. Spectral - uses eigenvectors
-chr_order_spec <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = "Spectral")
-
-# 5. Spearman distance
-chr_order_dist <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                          chromosome_order_method = "spearman")
-
-# 6. customized
-seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
-chr_order_manu <- buildPlotData(com_name, homologs_df, genes_gr, chrom_infos,
-                                chr_orders=seq_names)
-```
-
-
-Step 4. Calculate the exactly position for Bezier curve.
-
-There are three methods to calculate the position, by chromosome locations of the gene, by the index of the gene, by the homolog chromosome names of the gene. 
-```{r calBezierCurve}
-# by coordinates
-bezier_chr <- buildBezierDF(plotData$homolog_df_list,
-                           colname1='topChr_finalOffset',
-                           colname2='bottomChr_finalOffset')
-# by the index
-bezier_ix <- buildBezierDF(plotData$homolog_df_list,
-                           colname1='topIx_finalOffset',
-                           colname2='bottomIx_finalOffset')
-# by homolog chromosome names
-bezier_mini <- buildBezierDF(plotData$homolog_df_list,
-                             colname1='topMini_finalOffset',
-                             colname2='bottomMini_finalOffset')
-```
-
-Step 5. Plot the data.
-
-```{r plotData}
-# by coordinates
-orthoRibbonPlot(com_name, bezier_chr,
-                plotData$chrom_bars_df,
-                plotData$chrom_label_df)
-# by the index
-orthoRibbonPlot(com_name, bezier_ix,
-                plotData$chrom_bars_df,
-                plotData$chrom_label_df)
-# by homologous chromosome names
-# the gene is not ordered by coordinates but ordered by the homologous chromosome names
-## And Here we will show the symbols for each homologous.
-symbol_list_top <- plotData$symbol_list_top
-symbol_list_top$x <- symbol_list_top$xMini
-symbol_list_bottom <- plotData$symbol_list_bottom
-symbol_list_bottom$x <- symbol_list_bottom$xMini
-orthoRibbonPlot(com_name, bezier_mini,
-                plotData$chrom_bars_df,
-                plotData$chrom_label_df,
-                show_symbol=TRUE,
-                symbol_list_top=symbol_list_top,
-                symbol_list_bottom=symbol_list_bottom,
-                symbol_size=1)
-```
-
-## Start from the ortholog groups information
-
-Another OrthoRibbon supported workflow starts from ortholog group information, where each group contains genes from different species that are inferred to be orthologous. The following examples demonstrate how to generate ribbon diagrams using ortholog groups by retrieving the corresponding gene annotations and genomic coordinates for visualization.
-
-First we prepare the species abbreviation.
-```{r human_fly_cn}
-com_name <- c('hsapiens', 'dmelanogaster')
-names(com_name) <- com_name # must assign the names.
-```
-
-And then load the ortholog data. You can get the ortholog data via tools like
+Step 3. Retrieve chromosome, homologs, and gene coordinates.
+You can get the ortholog data via tools like
 [OrthoFinder](https://github.com/OrthoFinder/OrthoFinder), 
 [odp](https://github.com/conchoecia/odp), or databases like
 [OrthoDB](https://www.orthodb.org/), [eggNOG](http://eggnog6.embl.de/).
@@ -217,25 +87,193 @@ homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
 head(homologs_df, n=2)
 ```
 
-Finally, prepare the plotting data and generate the ribbon diagram.
+Step 4. Prepare the plot data.
 
 If the `homologs_df` data frame already contains gene location information (specifically, the "species", "seq", and "start" columns), the `genes_gr` argument can be omitted. Otherwise, gene annotations must be provided via the `genes_gr` argument as a `GRanges` object, with "gene_name" and "species" stored as metadata columns.
 
-```{r plot4df}
-plotData <- buildPlotData(com_name, homologs_df,
+```{r prepare_human_fly_data}
+plotData <- buildPlotData(common_name, homologs_df,
                           chrom_infos = chrom_infos,
                           chromosome_order_method = 'max',
                           max_links=1000)
- 
+names(plotData)
+```
+
+Step 5. Calculate the exactly position for Bezier curve.
+
+There are three methods for calculating gene positions: **chromosome coordinates**, **gene index**, and **homologous chromosome**.
+Here we show the example by **homologous chromosome** and
+will discuss the details later.
+```{r calBezierCurve_human_fly_data}
+# by homolog chromosomes
 bezier_mini <- buildBezierDF(plotData$homolog_df_list,
                              colname1='topMini_finalOffset',
                              colname2='bottomMini_finalOffset')
+```
 
-orthoRibbonPlot(com_name, bezier_mini,
+Step 6. Plot the data.
+
+```{r plotData_human_fly_data}
+orthoRibbonPlot(common_name, bezier_mini,
                 plotData$chrom_bars_df,
                 plotData$chrom_label_df)
 ```
 
+## Details
+
+### Input data
+
+OrthoRibbon supports flexible input formats and can integrate ortholog annotations from a variety of sources, including commonly used databases such as Ensembl and results generated by other orthology inference tools. In the quick start section, the data is the output of [orthoFinder](https://github.com/OrthoFinder/OrthoFinder) for human and fruit fly, which is based on ortholog groups information. OrthoRibbon can be readily adapted to using the homolog pairs like data retrieved from Ensembl database.
+
+Here is sample code to prepare the data by retrieving chromosome, homologs and gene coordinates via BioMart.
+
+```{r retrieveHomologs,eval=FALSE}
+# prepare mart for BioMart
+marts <- geneClusterPattern::guessSpecies(
+  common_name, output='mart',
+  host='https://jun2026.archive.ensembl.org')
+
+# prepare all the Ensembl ids
+ids <- orthoRibbon::getGeneIDs(common_name, marts)
+
+# get chromosome info
+chrom_infos<- lapply(common_name, GenomeInfoDb::getChromInfoFromEnsembl)
+
+# retrieve all the homologs
+homologs <- orthoRibbon::getHomologGRs(ids, common_name, marts)
+
+# retrieve all the gene ranges
+genes_gr <- orthoRibbon::getGeneGRs(ids, marts, homologs)
+
+# reformat the homologs to data.frame
+homologs_df <- getHomologIDs(homologs)
+```
+
+Since this step retrieve information via "biomaRt", it will take some time or out of service.
+
+We will load presaved data.
+```{r loadEnsemblData}
+common_name <- c("hsapiens", "mmusculus", "drerio")
+common_name <- setNames(common_name, common_name)
+extdata <- system.file('extdata', package='orthoRibbon')
+chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
+names(chrom_infos)
+head(chrom_infos[[1]], n=2)
+homologs_df <- readRDS(file.path(extdata, 'homolog_df.human.mouse.zebrafish.rds'))
+head(homologs_df, n=2)
+genes_gr <- readRDS(file.path(extdata, 'gene.GRanges.obj.rds'))
+head(genes_gr, n=2)
+```
+
+
+### Set chromosome order
+
+Setting an appropriate chromosome order can make the data presentation much cleaner by reducing the number of crossing curves and making the overall pattern easier to interpret.
+
+OrthoRibbon provides seven different methods for arranging chromosome order:
+
+1. **Max**: minimizes the chromosome distance.
+2. **GW (Gruvaeus–Wainer)**: minimizes the gradient measure.
+3. **OLO (Optimal Leaf Ordering)**: optimizes the ordering of leaves in a dendrogram.
+4. **TSP (Traveling Salesman Problem)**: minimizes the total path length.
+5. **Spectral**: determines the order using eigenvectors.
+6. **Spearman distance**: uses Spearman distance to determine chromosome similarity and ordering.
+7. **Customized**: allows users to specify their own chromosome order.
+
+You may want to try different ordering methods and compare the resulting visualizations to determine which one provides the clearest representation of your data.
+
+```{r otherOrderMethods,eval=FALSE}
+# Different methods optimize different criteria:
+# 1. max - minimizes the chromosome distance 
+chr_order_max <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "max")
+# 2. GW (Gruvaeus-Wainer) - minimizes gradient measure
+chr_order_gw <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "GW")
+
+# 3. OLO (Optimal Leaf Ordering) - optimal for dendrograms
+chr_order_olo <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "OLO")
+
+# 4. TSP (Traveling Salesman Problem) - minimizes path length
+chr_order_tsp <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "TSP")
+
+# 5. Spectral - uses eigenvectors
+chr_order_spec <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "Spectral")
+
+# 6. Spearman distance
+chr_order_dist <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "spearman")
+
+# 7. customized
+seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
+chr_order_manu <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                                chr_orders=seq_names)
+```
+```{r otherOrderMethodsHidden, echo=FALSE, results='hide'}
+chr_order_max <- buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+                          chromosome_order_method = "max")
+```
+
+### Methods for the position of Bezier curve.
+
+As describe above, there are three methods for calculating gene positions: **chromosome coordinates**, **gene index**, and **homologous chromosome**.
+
+* **Chromosome coordinates:** Positions are calculated based on the genomic coordinates of the genes. This method emphasizes the actual physical locations and distances between genes on the chromosomes.
+
+* **Gene index:** Positions are based on the rank of each gene along the chromosome, ordered by genomic coordinates. This method emphasizes the organization of homologous gene clusters while ignoring gene lengths and the gaps between genes.
+
+* **Homologous chromosome:** Positions are summarized by the proportion of homologous genes shared between each pair of chromosomes. This method emphasizes the relative proportion of homologous genes between chromosome pairs.
+
+```{r calBezierCurve}
+# chr_order_max as plotData from last step
+# Where are the homologs of mouse sex-linked genes located in the zebrafish and human genomes?
+plotData <- subset(chr_order_max, subset=list('mmusculus'=c('X', 'Y')))
+# by coordinates
+bezier_chr <- buildBezierDF(plotData$homolog_df_list,
+                           colname1='topChr_finalOffset',
+                           colname2='bottomChr_finalOffset')
+# by the index
+bezier_ix <- buildBezierDF(plotData$homolog_df_list,
+                           colname1='topIx_finalOffset',
+                           colname2='bottomIx_finalOffset')
+# by homolog chromosome names
+bezier_mini <- buildBezierDF(plotData$homolog_df_list,
+                             colname1='topMini_finalOffset',
+                             colname2='bottomMini_finalOffset')
+```
+
+Plot the data generated by each method to compare their results.
+```{r plotData}
+# by coordinates
+orthoRibbonPlot(common_name, bezier_chr,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
+# by the index
+orthoRibbonPlot(common_name, bezier_ix,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
+# by homologous chromosome names
+# the gene is not ordered by coordinates but ordered by the homologous chromosome names
+## And Here we will show the symbols for each homologous.
+symbol_df_top <- plotData$symbol_df_top
+symbol_df_top <- 
+  symbol_df_top[sample(seq.int(nrow(symbol_df_top)), 50), ] # random select 50 symbols
+symbol_df_top$x <- symbol_df_top$xMini
+symbol_df_bottom <- plotData$symbol_df_bottom
+symbol_df_bottom <- 
+  symbol_df_bottom[sample(seq.int(nrow(symbol_df_bottom)), 50), ] # random select 50 symbols
+symbol_df_bottom$x <- symbol_df_bottom$xMini
+orthoRibbonPlot(common_name, bezier_mini,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df,
+                show_symbol=TRUE,
+                symbol_df_top=symbol_df_top,
+                symbol_df_bottom=symbol_df_bottom,
+                symbol_size=1)
+```
 
 ## SessionInfo
 

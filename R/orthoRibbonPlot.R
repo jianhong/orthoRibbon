@@ -2,7 +2,7 @@
 #' @description
 #' Plot data by ribbon plot.
 #'
-#' @param com_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".
+#' @param common_name Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".
 #' @param bezier_df A data.frame. The coordinates for Bezier curves.
 #' It must have columns "x", "y", "id", and "col".
 #' The "id" column saves group id for each pair of homologs.
@@ -11,7 +11,7 @@
 #' "chrom" indicates the chromosome.
 #' @param chrom_label_df A data.frame. The coordinates for chromosome names.
 #' It must have columns "x", "y" and "labels"
-#' @param symbol_list_top,symbol_list_bottom The data.frame for the gene labels
+#' @param symbol_df_top,symbol_df_bottom The data.frame for the gene labels
 #' @param link_lwd,chr_lwd The line width for Bezier curve, chromosome bar,
 #' @param chr_lineend The line end for chromosome bar.
 #' @param chr_size,label_size,symbol_size The size for chromosome label,
@@ -28,9 +28,9 @@
 #' @examples
 #' # example code
 #'
-orthoRibbonPlot <- function(com_name,
+orthoRibbonPlot <- function(common_name,
                             bezier_df, chrom_bars_df, chrom_label_df,
-                            symbol_list_top, symbol_list_bottom,
+                            symbol_df_top, symbol_df_bottom,
                             link_lwd=0.25,
                             chr_lwd=3, chr_lineend='round',
                             chr_size = 6, label_size = 12, symbol_size = 2,
@@ -41,9 +41,9 @@ orthoRibbonPlot <- function(com_name,
   stopifnot(all(c('x', 'y', 'label') %in% colnames(chrom_label_df)))
   if(isTRUE(show_symbol)){
     stopifnot(all(c('x', 'y', 'top_label', 'bottom_label') %in%
-                    colnames(symbol_list_top)))
+                    colnames(symbol_df_top)))
     stopifnot(all(c('x', 'y', 'top_label', 'bottom_label') %in%
-                    colnames(symbol_list_bottom)))
+                    colnames(symbol_df_bottom)))
   }
 
   p <- ggplot() +
@@ -62,10 +62,10 @@ orthoRibbonPlot <- function(com_name,
               hjust = 0.5, vjust = 0, size = chr_size, show.legend = FALSE)
   if(isTRUE(show_symbol)){
     p <- p + scale_y_reverse(
-      breaks = c(-.2, seq(0, length(com_name)-1), length(com_name)-.9),
-      labels = c('symbol', com_name, 'symbol'),
-      limits=c(-.3, length(com_name)-.8)) +
-      geom_text_repel(data=symbol_list_top,
+      breaks = c(-.2, seq(0, length(common_name)-1), length(common_name)-.9),
+      labels = c('symbol', common_name, 'symbol'),
+      limits=c(-.3, length(common_name)-.8)) +
+      geom_text_repel(data=symbol_df_top,
                       aes(x=.data$x, y=.data$y, label=.data$bottom_label),
                       force_pull = 0,
                       nudge_y=0.1,
@@ -75,7 +75,7 @@ orthoRibbonPlot <- function(com_name,
                       segment.size=0.2, max.iter=1e4,
                       max.time=1,
                       size=symbol_size)+
-      geom_text_repel(data=symbol_list_top,
+      geom_text_repel(data=symbol_df_top,
                       aes(x=.data$x, y=.data$y, label=.data$top_label),
                       force_pull = 0,
                       nudge_y=0.2,
@@ -85,7 +85,7 @@ orthoRibbonPlot <- function(com_name,
                       segment.size=0.2, max.iter=1e4,
                       max.time=1,
                       size=symbol_size) +
-      geom_text_repel(data=symbol_list_bottom,
+      geom_text_repel(data=symbol_df_bottom,
                       aes(x=.data$x, y=.data$y, label=.data$bottom_label),
                       force_pull = 0,
                       nudge_y=-0.1,
@@ -96,8 +96,8 @@ orthoRibbonPlot <- function(com_name,
                       max.time=1,
                       size=symbol_size)
   }else{
-    p <- p + scale_y_reverse(breaks = seq(0, length(com_name)-1),
-                             labels = com_name)
+    p <- p + scale_y_reverse(breaks = seq(0, length(common_name)-1),
+                             labels = common_name)
   }
   p <- p + coord_cartesian(xlim=xlim) +
     theme_minimal() +

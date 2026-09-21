@@ -4,12 +4,12 @@
 \alias{getHomologGRs}
 \title{Retrieve the homolog pairs}
 \usage{
-getHomologGRs(ids, com_name, marts)
+getHomologGRs(ids, common_name, marts)
 }
 \arguments{
 \item{ids}{A named list with the gene ids for each species}
 
-\item{com_name}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
+\item{common_name}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 
 \item{marts}{A named list with the Mart object for each species}
 }

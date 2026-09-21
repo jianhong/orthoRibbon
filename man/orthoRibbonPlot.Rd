@@ -5,12 +5,12 @@
 \title{Plot the data}
 \usage{
 orthoRibbonPlot(
-  com_name,
+  common_name,
   bezier_df,
   chrom_bars_df,
   chrom_label_df,
-  symbol_list_top,
-  symbol_list_bottom,
+  symbol_df_top,
+  symbol_df_bottom,
   link_lwd = 0.25,
   chr_lwd = 3,
   chr_lineend = "round",
@@ -22,7 +22,7 @@ orthoRibbonPlot(
 )
 }
 \arguments{
-\item{com_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".}
+\item{common_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio".}
 
 \item{bezier_df}{A data.frame. The coordinates for Bezier curves.
 It must have columns "x", "y", "id", and "col".
@@ -35,7 +35,7 @@ It must have columns "x", "y", "sp" and "chrom". Here "sp" means species and
 \item{chrom_label_df}{A data.frame. The coordinates for chromosome names.
 It must have columns "x", "y" and "labels"}
 
-\item{symbol_list_top, symbol_list_bottom}{The data.frame for the gene labels}
+\item{symbol_df_top, symbol_df_bottom}{The data.frame for the gene labels}
 
 \item{link_lwd, chr_lwd}{The line width for Bezier curve, chromosome bar,}
 

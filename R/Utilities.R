@@ -36,7 +36,7 @@ add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
 }
 
 #' Retrieve all the Ensembl gene IDs by given species abbreviations
-#' @param com_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
+#' @param common_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param marts A named list with the Mart object for each species
 #' @return A list of character with Ensembl gene IDs.
 #' @export
@@ -44,13 +44,13 @@ add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
 #' @importFrom biomaRt getBM
 #' @importFrom methods is
 #' @importFrom AnnotationDbi keys
-getGeneIDs <- function(com_name, marts){
-  stopifnot(is.character(com_name))
+getGeneIDs <- function(common_name, marts){
+  stopifnot(is.character(common_name))
   if(missing(marts)){
-    full_name <- guessSpecies(com_name, output = "scientific name")
+    full_name <- guessSpecies(common_name, output = "scientific name")
     if(requireNamespace("ChIPpeakAnno")){
       orgList <- lapply(full_name, ChIPpeakAnno::egOrgMap)
-      names(orgList) <- com_name
+      names(orgList) <- common_name
       ids <- lapply(orgList, function(org){
         if(requireNamespace(org)){
           org <- get(org)
@@ -64,9 +64,8 @@ getGeneIDs <- function(com_name, marts){
       stop('"ChIPpeakAnno" is required.
            Please install via BiocManager::install("ChIPpeakAnno")')
     }
-
   }else{
-    stopifnot(identical(names(com_name), names(marts)))
+    stopifnot(identical(names(common_name), names(marts)))
     null <- lapply(marts, function(.ele) {
       stopifnot("marts should be a list of Mart objects" =
                   is(.ele, 'Mart'))
@@ -112,21 +111,21 @@ filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
 
 #' Retrieve the homolog pairs
 #' @param ids A named list with the gene ids for each species
-#' @param com_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
+#' @param common_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @param marts A named list with the Mart object for each species
 #' @return A list with homolog GRanges.
 #' @export
 #' @importFrom geneClusterPattern getHomologGeneList
-getHomologGRs <- function(ids, com_name, marts){
+getHomologGRs <- function(ids, common_name, marts){
   stopifnot(length(names(ids))==length(ids))
-  stopifnot(all(names(ids) %in% com_name))
+  stopifnot(all(names(ids) %in% common_name))
   stopifnot(identical(names(ids), names(marts)))
   null <- lapply(marts, function(.ele) {
     stopifnot("marts should be a list of Mart objects" =
                 is(.ele, 'Mart'))
   })
   target_species <- lapply(names(ids), function(name){
-    com_name[com_name!=name]
+    common_name[common_name!=name]
   })
   homologs <- mapply(getHomologGeneList,
                      target_species, marts, ids,
@@ -389,7 +388,7 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
   used_seqs <- lapply(chrom_infos, function(.ele){
     sortSeqlevels(.ele$name)
   })
-  ## the mapping chain is the order of com_name
+  ## the mapping chain is the order of common_name
   sp_pairs <- lapply(seq_along(used_seqs)[-length(used_seqs)],
                      function(x) names(used_seqs)[c(x, x+1)])
   ## Finds an order that minimizes crossings
@@ -523,7 +522,7 @@ buildHomologLinksDF <- function(homolog_df, chrom_df){
   used_seqs <- lapply(chrom_df, function(.ele){
     sort(.ele$name)
   })
-  ## the mapping chain is the order of com_name
+  ## the mapping chain is the order of common_name
   sp_pairs <- lapply(seq_along(used_seqs)[-length(used_seqs)],
                      function(x) names(used_seqs)[c(x, x+1)])
 

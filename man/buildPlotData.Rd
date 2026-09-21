@@ -5,7 +5,7 @@
 \title{Build the plot data}
 \usage{
 buildPlotData(
-  com_name,
+  common_name,
   homolog_df,
   genes_gr,
   chrom_infos,
@@ -17,7 +17,7 @@ buildPlotData(
 )
 }
 \arguments{
-\item{com_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
+\item{common_name}{Species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 
 \item{homolog_df}{The data.frame for homologs with column names
 "gene_id1", "gene_id2".}
@@ -49,7 +49,7 @@ try 'TSP' first.}
 }
 \value{
 A list with elements "homolog_df_list", "chrom_bars_df",
-"chrom_label_df" , "symbol_list_top" and, "symbol_list_bottom" for plot.
+"chrom_label_df" , "symbol_df_top" and, "symbol_df_bottom" for plot.
 }
 \description{
 Build the plot data from homolog data.frame, gene annotations and chromosome
