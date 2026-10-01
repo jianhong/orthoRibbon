@@ -12,7 +12,8 @@
 #' @param chrom_label_df A data.frame. The coordinates for chromosome names.
 #' It must have columns "x", "y" and "labels"
 #' @param symbol_df_top,symbol_df_bottom The data.frame for the gene labels
-#' @param link_lwd,chr_lwd The line width for Bezier curve, chromosome bar,
+#' @param link_lwd,chr_lwd The line width for Bezier curve, chromosome bar.
+#' @param link_alpha The alpha value for Bezier curve.
 #' @param chr_lineend The line end for chromosome bar.
 #' @param chr_size,label_size,symbol_size The size for chromosome label,
 #' species, and symbols.
@@ -21,7 +22,7 @@
 #' @return A ggplot object
 #' @importFrom ggplot2 ggplot aes geom_line geom_text scale_y_reverse xlim
 #'  theme_minimal element_blank theme element_text coord_cartesian
-#' @importFrom rlang .data
+#' @importFrom rlang .data !! expr
 #' @importFrom ggforce geom_bezier2
 #' @importFrom ggrepel geom_text_repel
 #' @export
@@ -31,7 +32,7 @@
 orthoRibbonPlot <- function(common_name,
                             bezier_df, chrom_bars_df, chrom_label_df,
                             symbol_df_top, symbol_df_bottom,
-                            link_lwd=0.25,
+                            link_lwd=0.25, link_alpha=1,
                             chr_lwd=3, chr_lineend='round',
                             chr_size = 6, label_size = 12, symbol_size = 2,
                             xlim=c(-0.02, 1.02),
@@ -45,12 +46,19 @@ orthoRibbonPlot <- function(common_name,
     stopifnot(all(c('x', 'y', 'top_label', 'bottom_label') %in%
                     colnames(symbol_df_bottom)))
   }
-
+  bezier_aes <- aes(x = .data$x, y = .data$y,
+                    group = .data$id, colour = .data$col)
+  for(aesthetic in c('linetype', 'lineend')){
+    if(aesthetic %in% colnames(bezier_df)){
+        bezier_aes[[aesthetic]] <- expr(as.factor(.data[[!!aesthetic]]))
+    }
+  }
   p <- ggplot() +
     ggforce::geom_bezier2(data = bezier_df,
-                          aes(x = .data$x, y = .data$y,
-                              group = .data$id, colour = .data$col),
-                          linewidth = link_lwd, show.legend = FALSE)+
+                          bezier_aes,
+                          linewidth = link_lwd,
+                          alpha = link_alpha,
+                          show.legend = FALSE)+
     geom_line(data = chrom_bars_df,
               aes(x = .data$x, y = .data$y,
                   group = interaction(.data$sp, .data$chrom),

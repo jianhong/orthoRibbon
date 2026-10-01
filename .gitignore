@@ -6,3 +6,6 @@
 **.DS_data
 inst/scripts/scratch*
 .positai
+TODO.md
+ignore
+**.DS_Store

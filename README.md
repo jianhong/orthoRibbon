@@ -29,25 +29,6 @@ remotes::install_github("jianhong/orthoRibbon",
                         dependencies = TRUE)
 ```
 
-## Quick Start
-
-Example workflow to visualize orthologous genes across species.
-
-```r
-library(orthoRibbon)
-
-# example ortholog table
-ortho <- data.frame(
-  species1 = c("Human", "Human", "Human"),
-  gene1    = c("TP53", "BRCA1", "MYC"),
-  species2 = c("Mouse", "Mouse", "Mouse"),
-  gene2    = c("Trp53", "Brca1", "Myc")
-)
-
-# plot ribbon diagram
-orthoRibbon(ortho)
-```
-
 ## Input Data
 
 OrthoRibbon requires genomic coordinate information to position chromosomes and genes across species and to draw ribbons connecting orthologous genes.

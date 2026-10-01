@@ -16,3 +16,13 @@ A data.frame with homologs.
 \description{
 Retrieve the homolog pairs
 }
+\examples{
+library(GenomicRanges)
+homologs <- list('a2b'=GRangesList(
+ x=GRanges('seq1', IRanges(seq.int(5), width=1, name=letters[seq.int(5)]),
+  homolog_ensembl_gene_ids=LETTERS[seq.int(5)]),
+ y=GRanges('seq2', IRanges(seq.int(3), width=1, names=letters[seq.int(3)]),
+  homolog_ensembl_gene_ids=c('m', 'n', 'k'))
+))
+getHomologIDs(homologs)
+}

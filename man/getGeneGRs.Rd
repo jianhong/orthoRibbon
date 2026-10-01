@@ -20,3 +20,17 @@ A list with gene information GRanges.
 \description{
 Retrieve all the gene ranges
 }
+\examples{
+if(interactive()){
+ library(biomaRt)
+ marts <- useEnsembl(
+  biomart = "ENSEMBL_MART_ENSEMBL",
+  dataset = "hsapiens_gene_ensembl",
+  host='https://jun2026.archive.ensembl.org')
+ common_name <- setNames('hsapiens', 'hsapiens')
+ ids <- getGeneIDs(common_name, marts)
+ homologs <- getHomologGRs(ids, common_name, marts)
+ genes_gr <- getGeneGRs(ids, marts, homologs)
+}
+
+}

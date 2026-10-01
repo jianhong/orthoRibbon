@@ -8,6 +8,7 @@
 #' @param symbol_colunm_name The column name of gene symbol in 'genes_gr'.
 #' @return A data frame with annotated homologs.
 #' @importFrom S4Vectors mcols
+#' @noRd
 add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
   stopifnot(is.matrix(homolog_df) || is.data.frame(homolog_df))
   stopifnot(ncol(homolog_df)>=2)
@@ -44,6 +45,12 @@ add_coord <- function(homolog_df, genes_gr, symbol_colunm_name){
 #' @importFrom biomaRt getBM
 #' @importFrom methods is
 #' @importFrom AnnotationDbi keys
+#' @examples
+#' if(interactive()){
+#' library(ChIPpeakAnno)
+#' library(org.Hs.eg.db)
+#' ids <- getGeneIDs('hsapiens')
+#' }
 getGeneIDs <- function(common_name, marts){
   stopifnot(is.character(common_name))
   if(missing(marts)){
@@ -65,11 +72,7 @@ getGeneIDs <- function(common_name, marts){
            Please install via BiocManager::install("ChIPpeakAnno")')
     }
   }else{
-    stopifnot(identical(names(common_name), names(marts)))
-    null <- lapply(marts, function(.ele) {
-      stopifnot("marts should be a list of Mart objects" =
-                  is(.ele, 'Mart'))
-    })
+    checkMartInput(common_name=common_name, marts=marts)
     ids <- lapply(marts, function(mart){
       getBM(attributes='ensembl_gene_id', mart=mart)
     })
@@ -82,6 +85,8 @@ getGeneIDs <- function(common_name, marts){
 #' @param chrInfo A data.frame retrieved from Ensembl by function
 #' getChromInfoFromEnsembl.
 #' @param sp_min_chr_size The minimal size for a chromosome.
+#' @return A filtered chrInfo
+#' @noRd
 filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
   stopifnot(is.data.frame(chrInfo))
   stopifnot('chromosome info must have columns "name" and "length"'=
@@ -109,6 +114,21 @@ filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
   return(chrInfo)
 }
 
+checkMartInput <- function(ids, common_name, marts){
+  if(!missing(ids)){
+    stopifnot(length(names(ids))==length(ids))
+    if(!missing(common_name)){
+      stopifnot(all(names(ids) %in% common_name))
+    }
+    stopifnot(identical(names(ids), names(marts)))
+  }else{
+    stopifnot(identical(names(common_name), names(marts)))
+  }
+  null <- lapply(marts, function(.ele) {
+    stopifnot("marts should be a list of Mart objects" =
+                is(.ele, 'Mart'))
+  })
+}
 #' Retrieve the homolog pairs
 #' @param ids A named list with the gene ids for each species
 #' @param common_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
@@ -117,13 +137,7 @@ filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
 #' @export
 #' @importFrom geneClusterPattern getHomologGeneList
 getHomologGRs <- function(ids, common_name, marts){
-  stopifnot(length(names(ids))==length(ids))
-  stopifnot(all(names(ids) %in% common_name))
-  stopifnot(identical(names(ids), names(marts)))
-  null <- lapply(marts, function(.ele) {
-    stopifnot("marts should be a list of Mart objects" =
-                is(.ele, 'Mart'))
-  })
+  checkMartInput(ids, common_name, marts)
   target_species <- lapply(names(ids), function(name){
     common_name[common_name!=name]
   })
@@ -140,6 +154,15 @@ getHomologGRs <- function(ids, common_name, marts){
 #' @export
 #' @importFrom S4Vectors mcols
 #' @importFrom utils combn
+#' @examples
+#' library(GenomicRanges)
+#' homologs <- list('a2b'=GRangesList(
+#'  x=GRanges('seq1', IRanges(seq.int(5), width=1, name=letters[seq.int(5)]),
+#'   homolog_ensembl_gene_ids=LETTERS[seq.int(5)]),
+#'  y=GRanges('seq2', IRanges(seq.int(3), width=1, names=letters[seq.int(3)]),
+#'   homolog_ensembl_gene_ids=c('m', 'n', 'k'))
+#' ))
+#' getHomologIDs(homologs)
 getHomologIDs <- function(homologs){
   stopifnot(is.list(homologs))
   # merge the homolog ids
@@ -188,7 +211,21 @@ getHomologIDs <- function(homologs){
 #' @export
 #' @importFrom geneClusterPattern grangesFromEnsemblIDs
 #' @importFrom GenomicRanges GRangesList
+#' @examples
+#' if(interactive()){
+#'  library(biomaRt)
+#'  marts <- useEnsembl(
+#'   biomart = "ENSEMBL_MART_ENSEMBL",
+#'   dataset = "hsapiens_gene_ensembl",
+#'   host='https://jun2026.archive.ensembl.org')
+#'  common_name <- setNames('hsapiens', 'hsapiens')
+#'  ids <- getGeneIDs(common_name, marts)
+#'  homologs <- getHomologGRs(ids, common_name, marts)
+#'  genes_gr <- getGeneGRs(ids, marts, homologs)
+#' }
+#'
 getGeneGRs <- function(ids, marts, homologs){
+  checkMartInput(ids=ids, marts=marts)
   stopifnot(length(names(ids))==length(ids))
   stopifnot(identical(names(ids), names(marts)))
   null <- lapply(marts, function(.ele) {
@@ -222,6 +259,10 @@ getGeneGRs <- function(ids, marts, homologs){
 #' @importFrom methods is
 #' @importFrom Seqinfo seqnames
 #' @importFrom BiocGenerics start
+#' @return A data.frame with colnames 'gene_id1', 'gene_id2',
+#'  'symbol1', 'symbol2', 'species1', 'seq1', 'start1',
+#'  'species2', 'seq2', and 'start2'.
+#' @noRd
 addGeneInfo <- function(homolog_df, genes_gr, type='ortholog_pair_only'){
   stopifnot(type %in% c('ortholog_pair_only', 'ortholog_group_only',
                         'ortholog_group_with_gene_info'))
@@ -280,15 +321,13 @@ addGeneInfo <- function(homolog_df, genes_gr, type='ortholog_pair_only'){
 #' @param chrom_infos A list with the chromosome information data.frame.
 #' @param max_links A numeric. The maximal link number to show in the plot.
 #' @return A data.frame with filtered homologs
+#' @noRd
 subsetHomologsByChrom <- function(homolog_df, chrom_infos, max_links=5000){
   stopifnot(is.list(chrom_infos))
   stopifnot(is.data.frame(homolog_df))
   stopifnot(all(c('species1', 'seq1', 'species2', 'seq2') %in%
                   colnames(homolog_df)))
-  used_seqs <- lapply(chrom_infos, function(.ele){
-    sortSeqlevels(.ele$name)
-  })
-
+  used_seqs <- get_used_seqs(chrom_infos)
   used_seqs_ <- mapply(paste, rep(names(chrom_infos), lengths(used_seqs)),
                        unlist(used_seqs))
 
@@ -308,57 +347,91 @@ subsetHomologsByChrom <- function(homolog_df, chrom_infos, max_links=5000){
 #' Assign each column to its best row, ensuring no duplicate rows
 #' Greedy approach: process columns by their max value (highest first)
 #' @param count_matrix the count table.
+#' @noRd
+#' @return data.frame with columns `column`, `row`, `value`, ordered to
+#'   match `colnames(count_matrix)`.
 get_unique_max_rows <- function(count_matrix) {
-  # Get max row for each column with the max value
-  col_max <- lapply(colnames(count_matrix), function(col) {
-    max_row <- rownames(count_matrix)[which.max(count_matrix[, col, drop=TRUE])]
-    max_val <- max(count_matrix[, col, drop=TRUE])
-    c(row = max_row, value = max_val, col = col)
-  })
+  stopifnot(is.matrix(count_matrix))
+  remaining_cols <- col_names <- colnames(count_matrix)
+  remaining_rows <- row_names <- rownames(count_matrix)
+  stopifnot(!is.null(col_names), !is.null(row_names))
 
-  col_max_df <- as.data.frame(do.call(rbind, col_max), stringsAsFactors = FALSE)
-  col_max_df$value <- as.numeric(col_max_df$value)
+  ## Used to check the proportions
+  col_totals <- colSums(count_matrix)
 
-  # Sort by value (highest first) - greedy assignment
-  col_max_df <- col_max_df[order(-col_max_df$value), , drop=FALSE]
+  out_col <- character(0)
+  out_row <- character(0)
+  out_val <- numeric(0)
 
-  # Assign uniquely
-  assigned_rows <- character()
-  result <- data.frame(column = character(),
-                       row = character(),
-                       value = numeric(),
-                       stringsAsFactors = FALSE)
+  while (length(remaining_cols) > 0L && length(remaining_rows) > 0L) {
+    sub_mat <- count_matrix[remaining_rows, remaining_cols, drop = FALSE]
 
-  for (i in seq.int(nrow(col_max_df))) {
-    col_name <- col_max_df$col[i]
+    ## best available row for every remaining column
+    if (length(remaining_rows) == 1L) {
+      best_row_idx <- rep.int(1L, length(remaining_cols))
+    } else {
+      best_row_idx <- max.col(t(sub_mat), ties.method = "first")
+    }
+    best_row <- remaining_rows[best_row_idx]
 
-    # Get available rows (not yet assigned)
-    available_rows <- setdiff(rownames(count_matrix), assigned_rows)
+    ## columns that landed on the same row are in conflict
+    groups <- split(remaining_cols, best_row)
 
-    if (length(available_rows) == 0) {
-      #warning(paste("No available rows left for column:", col_name))
-      next
+    round_cols <- character(0)
+    round_rows <- character(0)
+
+    for (row_name in names(groups)) {
+      cols_wanting <- groups[[row_name]]
+
+      if (length(cols_wanting) == 1L) {
+        winner <- cols_wanting
+      } else {
+        denom  <- col_totals[cols_wanting]
+        shares <- ifelse(denom > 0,
+                         sub_mat[row_name, cols_wanting] / denom,
+                         sub_mat[row_name, cols_wanting])
+        winner <- cols_wanting[which.max(shares)]
+      }
+
+      out_col <- c(out_col, winner)
+      out_row <- c(out_row, row_name)
+      out_val <- c(out_val, sub_mat[row_name, winner])
+
+      round_cols <- c(round_cols, winner)
+      round_rows <- c(round_rows, row_name)
+      ## everyone else in cols_wanting is simply NOT removed from
+      ## remaining_cols, so they automatically compete again next round
     }
 
-    # Get best available row for this column
-    best_row <- available_rows[which.max(
-      count_matrix[available_rows, col_name])]
-    best_val <- count_matrix[best_row, col_name, drop=TRUE]
-
-    result <- rbind(result,
-                    data.frame(column = col_name,
-                               row = best_row,
-                               value = best_val))
-
-    assigned_rows <- c(assigned_rows, best_row)
+    remaining_cols <- setdiff(remaining_cols, round_cols)
+    remaining_rows <- setdiff(remaining_rows, round_rows)
   }
-  # set to original order
-  result <- result[match(colnames(count_matrix), result[, 'column']), ,
-                   drop=FALSE]
+
+  ## columns left when rows ran out
+  if (length(remaining_cols) > 0L) {
+    out_col <- c(out_col, remaining_cols)
+    out_row <- c(out_row, rep(NA_character_, length(remaining_cols)))
+    out_val <- c(out_val, rep(NA_real_, length(remaining_cols)))
+  }
+
+  result <- data.frame(column = out_col, row = out_row, value = out_val,
+                       stringsAsFactors = FALSE)
+  result <- result[match(col_names, result$column), , drop = FALSE]
+  rownames(result) <- NULL
+  result$column <- colnames(count_matrix)
 
   return(result)
 }
 
+get_used_seqs <- function(chrom_infos){
+  lapply(chrom_infos, function(.ele){
+    sortSeqlevels(.ele$name)
+  })
+}
+speices_pairs <- function(used_seqs){
+  lapply(seq_along(used_seqs)[-length(used_seqs)],
+         function(x) names(used_seqs)[c(x, x+1)])
+}
 
 #' Get the best order of the chromosomes
 #' @description
@@ -379,18 +452,16 @@ get_unique_max_rows <- function(count_matrix) {
 #' @importFrom GenomeInfoDb sortSeqlevels
 #' @importFrom seriation get_order seriate
 #' @importFrom stats hclust as.dist dist cor
+#' @noRd
 getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
   stopifnot(is.list(chrom_infos))
   stopifnot(is.data.frame(homolog_df))
   stopifnot(all(c('chr_sp1', 'chr_sp2') %in%
                   colnames(homolog_df)))
   chr_dist <- table(homolog_df[, c('chr_sp1', 'chr_sp2'), drop=FALSE])
-  used_seqs <- lapply(chrom_infos, function(.ele){
-    sortSeqlevels(.ele$name)
-  })
+  used_seqs <- get_used_seqs(chrom_infos)
   ## the mapping chain is the order of common_name
-  sp_pairs <- lapply(seq_along(used_seqs)[-length(used_seqs)],
-                     function(x) names(used_seqs)[c(x, x+1)])
+  sp_pairs <- speices_pairs(used_seqs)
   ## Finds an order that minimizes crossings
   chr_pairs <- lapply(sp_pairs,
                       FUN=function(p){
@@ -402,16 +473,20 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
                            sum(chr_b %in% rownames(chr_dist))){
                           cur_dist <-
                             chr_dist[chr_a[chr_a %in% rownames(chr_dist)],
-                                     chr_b[chr_b %in% colnames(chr_dist)]]
+                                     chr_b[chr_b %in% colnames(chr_dist)],
+                                     drop=FALSE]
                         }else{
                           cur_dist <-
                             t(chr_dist[chr_b[chr_b %in% rownames(chr_dist)],
-                                       chr_a[chr_a %in% colnames(chr_dist)]])
+                                       chr_a[chr_a %in% colnames(chr_dist)],
+                                       drop=FALSE])
                         }
                         # adjust by weight
                         rs <- rowSums(cur_dist)
                         cs <- colSums(cur_dist)
-                        if(method=='max'){
+                        if(method=='max'||
+                           nrow(cur_dist)==1 ||
+                           ncol(cur_dist)==1){
                           ords_tbl <- get_unique_max_rows(cur_dist)
                           ords <- list(
                             sub(paste0(p[1], ' '), '', ords_tbl$row),
@@ -449,7 +524,7 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
                       })
   ## sort the chromosome by previous one
   chr_orders <- chr_pairs[[1]]
-  for(j in seq_along(chr_pairs)[-1]){
+  for(j in seq_along(chr_pairs)[-1]){# keep for loop here
     cur_chr_pairs <- chr_pairs[[j]]
     chr_orders[[names(cur_chr_pairs)[2]]] <-
       cur_chr_pairs[[2]][match(chr_orders[[names(cur_chr_pairs)[1]]],
@@ -465,6 +540,7 @@ getChrOrders <- function(homolog_df, chrom_infos, method = 'TSP'){
 #' @param chrom_infos A list with the chromosome information data.frame.
 #' @param chr_orders A list with the ordered chromosome names
 #' @return A list with the ordered chromosome plot information
+#' @noRd
 buildChromDF <- function(chrom_infos, chr_orders){
   stopifnot(identical(names(chrom_infos), names(chr_orders)))
   chrom_infos <- mapply(chrom_infos, chr_orders,
@@ -518,13 +594,13 @@ buildChromDF <- function(chrom_infos, chr_orders){
 #' output of function
 #' @return A list with the homolog links plot information.
 #' @importFrom stats ave
+#' @noRd
 buildHomologLinksDF <- function(homolog_df, chrom_df){
   used_seqs <- lapply(chrom_df, function(.ele){
     sort(.ele$name)
   })
   ## the mapping chain is the order of common_name
-  sp_pairs <- lapply(seq_along(used_seqs)[-length(used_seqs)],
-                     function(x) names(used_seqs)[c(x, x+1)])
+  sp_pairs <- speices_pairs(used_seqs)
 
   homolog_df_list <- split(homolog_df,
                            paste(homolog_df$species1,
@@ -634,6 +710,7 @@ create_bezier_matrix <- function(data, i, colname1, colname2,
 #' @param homolog_df_list A list with the data.frame of plot data for homologs.
 #' @param colname1,colname2 The column names for top and bottom final positions.
 #' @param col1,col2 The column names for color.
+#' @param alpha The alpha value for color.
 #' @param cl1 A numeric. The B\'ezier curve is created with two control points.
 #' And cl1 should be no more than 4 and no less than 0.
 #' If it is set to 4, all points in B\'ezier curve will be set to col1.
@@ -649,7 +726,7 @@ create_bezier_matrix <- function(data, i, colname1, colname2,
 #'
 buildBezierDF <- function(homolog_df_list, colname1, colname2,
                           col1='seq_top', col2='seq_bottom',
-                          cl1=4){
+                          cl1=4, alpha=1){
   bezier_df <- lapply(seq_along(homolog_df_list), function(i){
     create_bezier_matrix(homolog_df_list[[i]],
                          i, colname1, colname2, col1, col2, cl1=cl1)

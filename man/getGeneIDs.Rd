@@ -17,3 +17,10 @@ A list of character with Ensembl gene IDs.
 \description{
 Retrieve all the Ensembl gene IDs by given species abbreviations
 }
+\examples{
+if(interactive()){
+library(ChIPpeakAnno)
+library(org.Hs.eg.db)
+ids <- getGeneIDs('hsapiens')
+}
+}

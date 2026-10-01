@@ -3,3 +3,5 @@
 .github
 ^\.positai$
 ^\.claude$
+TODO.md
+ignore

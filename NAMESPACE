@@ -55,7 +55,11 @@ importFrom(methods,
   slot,
   slotNames
 )
-importFrom(rlang,.data)
+importFrom(rlang,
+  "!!",
+  .data,
+  expr
+)
 importFrom(seriation,
   get_order,
   seriate

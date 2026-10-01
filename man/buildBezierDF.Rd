@@ -10,7 +10,8 @@ buildBezierDF(
   colname2,
   col1 = "seq_top",
   col2 = "seq_bottom",
-  cl1 = 4
+  cl1 = 4,
+  alpha = 1
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ If it is set to 2, the top point, top control point will be set to col1 and
 the bottom control point, bottom point will be set to col2.
 If it is set to 1, the top point will be set to col1 and others col2.
 If it is set to 0, all points will be set to col2.}
+
+\item{alpha}{The alpha value for color.}
 }
 \description{
 Build the data.frame for B\'ezier curve

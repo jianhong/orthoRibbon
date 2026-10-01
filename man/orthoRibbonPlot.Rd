@@ -12,6 +12,7 @@ orthoRibbonPlot(
   symbol_df_top,
   symbol_df_bottom,
   link_lwd = 0.25,
+  link_alpha = 1,
   chr_lwd = 3,
   chr_lineend = "round",
   chr_size = 6,
@@ -37,7 +38,9 @@ It must have columns "x", "y" and "labels"}
 
 \item{symbol_df_top, symbol_df_bottom}{The data.frame for the gene labels}
 
-\item{link_lwd, chr_lwd}{The line width for Bezier curve, chromosome bar,}
+\item{link_lwd, chr_lwd}{The line width for Bezier curve, chromosome bar.}
+
+\item{link_alpha}{The alpha value for Bezier curve.}
 
 \item{chr_lineend}{The line end for chromosome bar.}
 
