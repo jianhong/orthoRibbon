@@ -45,7 +45,7 @@ OrthoRibbon supports flexible input formats and can integrate ortholog annotatio
 if (!require("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }
-BiocManager::install("jianhong/orthoRibbon")
+BiocManager::install("orthoRibbon")
 ```
 
 ## Quick start
@@ -277,7 +277,8 @@ orthoRibbonPlot(common_name, bezier_mini,
                 show_symbol=TRUE,
                 symbol_df_top=symbol_df_top,
                 symbol_df_bottom=symbol_df_bottom,
-                symbol_size=3)
+                symbol_size=3,
+                link_alpha=0.1) # add alpha value for the link
 ```
 
 ## SessionInfo
