@@ -19,3 +19,20 @@ A list with homolog GRanges.
 \description{
 Retrieve the homolog pairs
 }
+\examples{
+\dontrun{
+common_name <- setNames(nm=c('hsapiens', 'mmusculus'))
+# This will retrieve data via bioMart
+# prepare mart for BioMart
+marts <- geneClusterPattern::guessSpecies(
+  common_name, output='mart',
+  host='https://jun2026.archive.ensembl.org')
+
+# prepare all the Ensembl ids
+ids <- orthoRibbon::getGeneIDs(common_name, marts)
+
+# retrieve all the homologs
+homologs <- orthoRibbon::getHomologGRs(ids, common_name, marts)
+}
+
+}

@@ -30,7 +30,18 @@ setClass(
 #' bottom layer.
 #' @param common_name species abbreviations e.g. "hsapiens", "mmusculus", "drerio"
 #' @importFrom methods new
+#' @returns An object of HomologPlotData.
 #' @export
+#' @examples
+#' HomologPlotData(
+#'   homolog_df_list=list(),
+#'   chrom_bars_df=data.frame(),
+#'   chrom_label_df=data.frame(),
+#'   symbol_df_top=data.frame(),
+#'   symbol_df_bottom=data.frame(),
+#'   common_name=setNames(nm=c('hsapiens', 'mmusculus'))
+#' )
+#'
 HomologPlotData <- function(homolog_df_list,
                             chrom_bars_df,
                             chrom_label_df,
@@ -151,7 +162,8 @@ setMethod("[", "HomologPlotData", function(x, i, ...) {
     keep <- nms[i]
   }
   if (!all(keep %in% nms)) {
-    stop("Unknown slot(s): ", paste(setdiff(keep, nms), collapse = ", "))
+    slotsN <- paste(setdiff(keep, nms), collapse = ", ")
+    stop("Unknown slot(s): ", slotsN)
   }
   stats::setNames(lapply(keep, function(nm) slot(x, nm)), keep)
 })

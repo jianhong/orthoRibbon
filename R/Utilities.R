@@ -114,6 +114,12 @@ filterChrom <- function(chrInfo, sp_min_chr_size=1e7){
   return(chrInfo)
 }
 
+checkMartList <- function(marts){
+  null <- lapply(marts, function(.ele) {
+    stopifnot("marts should be a list of Mart objects" =
+                is(.ele, 'Mart'))
+  })
+}
 checkMartInput <- function(ids, common_name, marts){
   if(!missing(ids)){
     stopifnot(length(names(ids))==length(ids))
@@ -124,10 +130,7 @@ checkMartInput <- function(ids, common_name, marts){
   }else{
     stopifnot(identical(names(common_name), names(marts)))
   }
-  null <- lapply(marts, function(.ele) {
-    stopifnot("marts should be a list of Mart objects" =
-                is(.ele, 'Mart'))
-  })
+  checkMartList(marts)
 }
 #' Retrieve the homolog pairs
 #' @param ids A named list with the gene ids for each species
@@ -136,6 +139,22 @@ checkMartInput <- function(ids, common_name, marts){
 #' @return A list with homolog GRanges.
 #' @export
 #' @importFrom geneClusterPattern getHomologGeneList
+#' @examples
+#' \dontrun{
+#' common_name <- setNames(nm=c('hsapiens', 'mmusculus'))
+#' # This will retrieve data via bioMart
+#' # prepare mart for BioMart
+#' marts <- geneClusterPattern::guessSpecies(
+#'   common_name, output='mart',
+#'   host='https://jun2026.archive.ensembl.org')
+#'
+#' # prepare all the Ensembl ids
+#' ids <- orthoRibbon::getGeneIDs(common_name, marts)
+#'
+#' # retrieve all the homologs
+#' homologs <- orthoRibbon::getHomologGRs(ids, common_name, marts)
+#' }
+#'
 getHomologGRs <- function(ids, common_name, marts){
   checkMartInput(ids, common_name, marts)
   target_species <- lapply(names(ids), function(name){
@@ -228,10 +247,7 @@ getGeneGRs <- function(ids, marts, homologs){
   checkMartInput(ids=ids, marts=marts)
   stopifnot(length(names(ids))==length(ids))
   stopifnot(identical(names(ids), names(marts)))
-  null <- lapply(marts, function(.ele) {
-    stopifnot("marts should be a list of Mart objects" =
-                is(.ele, 'Mart'))
-  })
+  checkMartList(marts)
   genes <- mapply(grangesFromEnsemblIDs, marts, ids, SIMPLIFY = FALSE)
   genes <- mapply(genes, names(genes), FUN=function(.ele, .species){
     .ele$species <- .species
@@ -388,14 +404,14 @@ get_unique_max_rows <- function(count_matrix) {
       } else {
         denom  <- col_totals[cols_wanting]
         shares <- ifelse(denom > 0,
-                         sub_mat[row_name, cols_wanting] / denom,
-                         sub_mat[row_name, cols_wanting])
+                         sub_mat[row_name, cols_wanting, drop=TRUE] / denom,
+                         sub_mat[row_name, cols_wanting, drop=TRUE])
         winner <- cols_wanting[which.max(shares)]
       }
 
       out_col <- c(out_col, winner)
       out_row <- c(out_row, row_name)
-      out_val <- c(out_val, sub_mat[row_name, winner])
+      out_val <- c(out_val, sub_mat[row_name, winner, drop=TRUE])
 
       round_cols <- c(round_cols, winner)
       round_rows <- c(round_rows, row_name)
@@ -704,34 +720,6 @@ create_bezier_matrix <- function(data, i, colname1, colname2,
   x <- do.call(rbind, x)
   x$id <- id
   x
-}
-
-#' Build the data.frame for B\'ezier curve
-#' @param homolog_df_list A list with the data.frame of plot data for homologs.
-#' @param colname1,colname2 The column names for top and bottom final positions.
-#' @param col1,col2 The column names for color.
-#' @param alpha The alpha value for color.
-#' @param cl1 A numeric. The B\'ezier curve is created with two control points.
-#' And cl1 should be no more than 4 and no less than 0.
-#' If it is set to 4, all points in B\'ezier curve will be set to col1.
-#' If it is set to 3, the top point, two control points will be set to col1 and
-#' the bottom point will be set to col2.
-#' If it is set to 2, the top point, top control point will be set to col1 and
-#' the bottom control point, bottom point will be set to col2.
-#' If it is set to 1, the top point will be set to col1 and others col2.
-#' If it is set to 0, all points will be set to col2.
-#' @export
-#' @examples
-#' # example code
-#'
-buildBezierDF <- function(homolog_df_list, colname1, colname2,
-                          col1='seq_top', col2='seq_bottom',
-                          cl1=4, alpha=1){
-  bezier_df <- lapply(seq_along(homolog_df_list), function(i){
-    create_bezier_matrix(homolog_df_list[[i]],
-                         i, colname1, colname2, col1, col2, cl1=cl1)
-  })
-  bezier_df <- do.call(rbind, bezier_df)
 }
 
 buildChromBarDF <- function(chrom_df){

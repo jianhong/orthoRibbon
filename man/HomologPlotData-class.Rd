@@ -71,6 +71,9 @@ The first name is treated as the "top" species, the last as the "bottom"
 species, and homolog_df_list / symbol_df_top / symbol_df_bottom are
 filtered to match.}
 }
+\value{
+An object of HomologPlotData.
+}
 \description{
 Wraps the collection of data frames/lists used for an orthoRibbon plot into
 a single S4 object, with list-like \code{$}, \code{[[}, and \code{[} access.
@@ -90,3 +93,14 @@ bottom layer.}
 \item{\code{common_name}}{species abbreviations e.g. "hsapiens", "mmusculus", "drerio"}
 }}
 
+\examples{
+HomologPlotData(
+  homolog_df_list=list(),
+  chrom_bars_df=data.frame(),
+  chrom_label_df=data.frame(),
+  symbol_df_top=data.frame(),
+  symbol_df_bottom=data.frame(),
+  common_name=setNames(nm=c('hsapiens', 'mmusculus'))
+)
+
+}

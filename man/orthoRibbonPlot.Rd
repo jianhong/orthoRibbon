@@ -58,6 +58,18 @@ A ggplot object
 Plot data by ribbon plot.
 }
 \examples{
-# example code
-
+common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
+extdata <- system.file('extdata', 'human_fly', package='orthoRibbon')
+chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
+homologs_df <- readRDS(file.path(extdata, 'homologs_df.rds'))
+plotData <- buildPlotData(common_name, homologs_df,
+                          chrom_infos = chrom_infos,
+                          chromosome_order_method = 'max',
+                          max_links=1000)
+bezier_chr <- buildBezierDF(plotData$homolog_df_list,
+                            colname1='topChr_finalOffset',
+                            colname2='bottomChr_finalOffset')
+orthoRibbonPlot(common_name, bezier_chr,
+                plotData$chrom_bars_df,
+                plotData$chrom_label_df)
 }

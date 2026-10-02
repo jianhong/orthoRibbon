@@ -27,7 +27,14 @@
 #' "chrom_label_df" , "symbol_df_top" and, "symbol_df_bottom" for plot.
 #' @export
 #' @examples
-#' # example code
+#' extdata <- system.file('extdata', package='orthoRibbon')
+#' chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
+#' homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
+#' common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
+#' plotData <- buildPlotData(common_name, homologs_df,
+#'                           chrom_infos = chrom_infos,
+#'                           chromosome_order_method = 'max',
+#'                           max_links=1000)
 #'
 buildPlotData <- function(common_name, homolog_df, genes_gr, chrom_infos,
                           sp_min_chr_size=10000000, chr_orders=NULL,

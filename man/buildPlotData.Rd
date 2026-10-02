@@ -56,6 +56,13 @@ Build the plot data from homolog data.frame, gene annotations and chromosome
 informations.
 }
 \examples{
-# example code
+extdata <- system.file('extdata', package='orthoRibbon')
+chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
+homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
+common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
+plotData <- buildPlotData(common_name, homologs_df,
+                          chrom_infos = chrom_infos,
+                          chromosome_order_method = 'max',
+                          max_links=1000)
 
 }
