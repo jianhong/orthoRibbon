@@ -1,9 +1,3 @@
-extdata <- system.file('extdata', package='orthoRibbon')
-chrom_infos <- readRDS(file.path(extdata, 'ensembl', 'chrom_infos.rds'))
-homologs_df <- readRDS(file.path(extdata, 'ensembl', 'homolog_df.human.mouse.zebrafish.rds'))
-genes_gr <- readRDS(file.path(extdata, 'ensembl', 'gene.GRanges.obj.rds'))
-
-
 # test_that("getGeneIDs", {
 #   ids <- getGeneIDs('hsapiens')
 #   expect_is(ids, 'list')
@@ -12,6 +6,7 @@ genes_gr <- readRDS(file.path(extdata, 'ensembl', 'gene.GRanges.obj.rds'))
 # })
 
 test_that("filterChrom", {
+  data("ensembl_hs_mm_dr")
   res <- filterChrom(chrom_infos[['mmusculus']], sp_min_chr_size = 1e8)
   expect_equal(nrow(res), sum(chrom_infos[['mmusculus']]$length>1e8))
 })
@@ -40,10 +35,9 @@ test_that("getHomologIDs", {
 })
 
 test_that('addGeneInfo', {
-  homolog_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
-  gene_gr <- readRDS(file.path(extdata, 'human_fly/genes_gr.rds'))
-  res <- addGeneInfo(homolog_df = homolog_df,
-                     genes_gr = gene_gr,
+  data("human_fly")
+  res <- addGeneInfo(homolog_df = homologs_df,
+                     genes_gr = genes_gr,
                      type = 'ortholog_group_with_gene_info')
   expect_equal(colnames(res), c(
     'gene_id1', 'gene_id2',
@@ -51,6 +45,7 @@ test_that('addGeneInfo', {
     'species1', 'seq1', 'start1',
     'species2', 'seq2', 'start2'
   ))
+  data("ensembl_hs_mm_dr")
   res <- addGeneInfo(homolog_df = homologs_df,
                      genes_gr = genes_gr,
                      type = 'ortholog_pair_only')
@@ -63,6 +58,7 @@ test_that('addGeneInfo', {
 })
 
 test_that('subsetHomologsByChrom', {
+  data("ensembl_hs_mm_dr")
   homolog_df <- addGeneInfo(homolog_df = homologs_df,
                             genes_gr = genes_gr,
                             type = 'ortholog_pair_only')
@@ -178,6 +174,7 @@ test_that('get_unique_max_rows', {
 })
 
 test_that('getChrOrders', {
+  data("ensembl_hs_mm_dr")
   homolog_df <- addGeneInfo(homolog_df = homologs_df,
                                genes_gr = genes_gr,
                                type = 'ortholog_pair_only')
@@ -254,3 +251,222 @@ test_that('buildChromDF & buildChromBarDF & buildChromLabelDF', {
   expect_all_true(c('x', 'y', 'chrom', 'label', 'sp') %in% colnames(chrBarLabel))
 })
 
+test_that('create_bezier_points', {
+  # returns a 4-row data.frame with x, y, col columns
+  res <- create_bezier_points(0, 3, 1, "red", "blue", cl1=3)
+  expect_s3_class(res, "data.frame")
+  expect_equal(nrow(res), 4)
+  expect_named(res, c("x", "y", "col"))
+  # x is evenly spaced from finalOffset1 to finalOffset2
+  expect_equal(res$x, c(0, 1, 2, 3))
+  # y follows the i-1, i, i-1, i pattern
+  expect_equal(res$y, c(0, 1, 0, 1))
+  # cl1 splits colors between col1 and col2
+  expect_equal(res$col,  c("red", "red", "red", "blue"))
+})
+
+test_that("create_bezier_matrix", {
+  df <- data.frame(topOffset = seq(0, 0.9, length.out=5)+0.1,
+                   bottomOffset = seq(0, 0.5, length.out=5)+0.5,
+                   seq_top = c('I', 'II', 'III', 'VI', 'V'),
+                   seq_bottom = c(1, 2, 3, 4, 5),
+                   stringsAsFactors = FALSE)
+  res <- create_bezier_matrix(df, 1, "topOffset", "bottomOffset")
+  expect_s3_class(res, "data.frame")
+  expect_equal(nrow(res), 4*nrow(df))
+  expect_named(res, c("x", "y", "col", "id"))
+  ## all lengths(id)==4
+  expect_true(all(table(res$id)==4))
+})
+
+test_that("buildBezierDF", {
+  ## input is a list
+  lst <- list(df=data.frame(topOffset = seq(0, 0.9, length.out=5)+0.1,
+                            bottomOffset = seq(0, 0.5, length.out=5)+0.5,
+                            seq_top = c('I', 'II', 'III', 'VI', 'V'),
+                            seq_bottom = c(1, 2, 3, 4, 5),
+                            stringsAsFactors = FALSE))
+  res <- buildBezierDF(lst, colname1='topOffset', colname2='bottomOffset')
+  expect_s3_class(res, "data.frame")
+  expect_named(res, c("x", "y", "col", "id"))
+  ## all lengths(id)==4
+  expect_true(all(table(res$id)==4))
+})
+
+test_that("buldPlotData", {
+  max_links <- 500
+  data("human_fly")
+  common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
+  plotData <- buildPlotData(common_name, homologs_df,
+                            chrom_infos = chrom_infos,
+                            chromosome_order_method = 'max',
+                            max_links=max_links)
+  expect_s4_class(plotData, "HomologPlotData")
+  expect_equal(nrow(plotData$symbol_df_top), max_links)
+  expect_equal(nrow(plotData$symbol_df_bottom), max_links)
+  ## test all other method
+  data("ensembl_hs_mm_dr")
+  common_name <- setNames(nm=names(chrom_infos))
+  expect_error(buildPlotData(common_name, homologs_df,
+                             genes_gr = GRanges(),
+                             chrom_infos = chrom_infos))
+  # chr_order <- lapply(c('GW', 'OLO', 'TSP'),
+  #                     function(method){
+  #   buildPlotData(common_name, homologs_df, genes_gr, chrom_infos,
+  #                 chromosome_order_method = method,
+  #                 max_links = max_links)
+  # })
+
+  seq_names <- lapply(chrom_infos, function(.ele) sortSeqlevels(.ele$name))
+  chr_order_manu <- buildPlotData(common_name, homologs_df,
+                                  genes_gr, chrom_infos,
+                                  chr_orders=seq_names)
+  null <- mapply(seq_names, names(seq_names), FUN=function(chr, sp){
+    expect_equal(
+      chr_order_manu$chrom_label_df$chrom[chr_order_manu$chrom_label_df$sp==sp],
+      chr)
+  })
+})
+
+test_that('HomologPlotData', {
+  req_cols <- c("gene_id_top", "gene_id_bottom", "symbol_top", "symbol_bottom",
+                "species_top", "seq_top", "start_top", "species_bottom",
+                "seq_bottom", "start_bottom", "chr_sp_top", "chr_sp_bottom",
+                "sp_top", "sp_bottom", "top_ChromSize", "top_ChromPercent",
+                "top_ChromOffset", "topIx", "topIx_Size", "topIx_geneOffset",
+                "topIx_finalOffset", "topChr_geneOffset", "topChr_finalOffset",
+                "bottom_ChromSize", "bottom_ChromPercent", "bottom_ChromOffset",
+                "bottomIx", "bottomIx_Size", "bottomIx_geneOffset",
+                "bottomIx_finalOffset", "bottomChr_geneOffset",
+                "bottomChr_finalOffset", "topMini", "topMini_Size",
+                "topMini_geneOffset", "topMini_finalOffset", "bottomMini",
+                "bottomMini_Size", "bottomMini_geneOffset",
+                "bottomMini_finalOffset")
+
+  make_homolog_df <- function(cols = req_cols) {
+    df <- as.data.frame(matrix(1, nrow = 1, ncol = length(cols)))
+    colnames(df) <- cols
+    df
+  }
+  make_bars <- function(cols = c("x", "y", "sp", "chrom", "label")) {
+    df <- data.frame(x = 1:2, y = 1:2, sp = c("human", "mouse"),
+                     chrom = c("1", "1", "2", "2"), label = c("1", "1", '2', '2'),
+                     stringsAsFactors = FALSE)
+    df[, cols, drop = FALSE]
+  }
+  make_labels <- function(cols = c("x", "y", "sp", "label", "chrom")) {
+    df <- data.frame(x = 1, y = 1, sp = "human", label = "1", chrom = "1",
+                     stringsAsFactors = FALSE)
+    df[, cols, drop = FALSE]
+  }
+
+  validity_fun <- getValidity(getClass("HomologPlotData"))
+
+  ## Build a loose object that is valid by default; override pieces per test.
+  chk <- function(homolog_df_list = list(make_homolog_df()),
+                  common_name = c("human", "mouse"),
+                  chrom_bars_df = make_bars(),
+                  chrom_label_df = make_labels()) {
+    obj <- HomologPlotData(homolog_df_list = homolog_df_list,
+               common_name = common_name,
+               chrom_bars_df = chrom_bars_df,
+               chrom_label_df = chrom_label_df,
+               symbol_df_top=data.frame(),
+               symbol_df_bottom=data.frame())
+    validity_fun(obj)
+  }
+
+  expect_true(chk())
+  expect_true(validObject(new("HomologPlotData")))
+  # empty homolog_df_list is valid
+  expect_true(chk(homolog_df_list = list()))
+  #extra columns in homolog data.frames are allowed
+  df <- make_homolog_df()
+  df$extra <- 1
+  expect_true(chk(homolog_df_list = list(df)))
+  # empty chrom_bars_df skips the bars and common_name checks
+  expect_true(chk(chrom_bars_df = data.frame(), common_name = character()))
+  # empty chrom_label_df skips the label column check
+  expect_true(chk(chrom_label_df = data.frame()))
+
+  #non-list homolog_df_list is rejected
+  expect_error(chk(homolog_df_list = "not a list"))
+  # list containing a non-data.frame is rejected
+  expect_error(chk(homolog_df_list = list(make_homolog_df(), 1)))
+  # a data.frame missing a required column is rejected
+  expect_error(chk(homolog_df_list = list(make_homolog_df(setdiff(req_cols, "topMini")))))
+  # each required homolog column is individually enforced
+  for (cn in req_cols) {
+    expect_error(chk(homolog_df_list = list(make_homolog_df(setdiff(req_cols, cn)))))
+  }
+  # a valid data.frame alongside an invalid one still errors
+  expect_error(chk(homolog_df_list = list(make_homolog_df(), make_homolog_df(req_cols[-1]))))
+  # single-element common_name is rejected
+  expect_error(chk(common_name = "human"))
+  # empty common_name with a non-empty chrom_bars_df is 'missing'
+  expect_error(chk(common_name = character()))
+  # common_name entries must appear in chrom_bars_df$sp
+  expect_error(chk(common_name = c("human", "zebrafish")))
+  # non-data.frame chrom_bars_df is rejected
+  expect_error(chk(chrom_bars_df = "oops"))
+  expect_error(chk(chrom_label_df = list(1)))
+  # chrom_bars_df, chrom_label_df missing a required column is rejected
+  for (cn in c("x", "y", "sp", "chrom", "label")) {
+    expect_error(chk(chrom_bars_df =
+                       make_bars(setdiff(c("x", "y", "sp", "chrom", "label"),
+                                         cn)),
+               common_name = character()))
+    expect_error(chk(chrom_label_df =
+                       make_labels(setdiff(c("x", "y", "sp", "label", "chrom"),
+                                           cn))))
+  }
+  # check assignment
+  obj <- HomologPlotData(homolog_df_list = list(make_homolog_df()),
+                         common_name = c("human", "mouse"),
+                         chrom_bars_df = make_bars(),
+                         chrom_label_df = make_labels(),
+                         symbol_df_top=data.frame(),
+                         symbol_df_bottom=data.frame())
+  obj$chrom_label_df <- obj$chrom_bars_df
+  expect_equal(names(obj), slotNames(obj))
+  obj <- subset(obj, subset=list(human='2', mouse='2'))
+  expect_true(all(obj$chrom_bars_df$chrom=='2'))
+  expect_true(all(obj$chrom_label_df$chrom=='2'))
+  expect_true(is.list(obj['common_name']))
+  expect_equal(obj[['common_name']], c("human", "mouse"))
+})
+
+test_that('orthoRibbonPlot', {
+  data("human_fly")
+  common_name <- setNames(nm=names(chrom_infos))
+  plotData <- buildPlotData(common_name, homologs_df,
+                            chrom_infos = chrom_infos,
+                            chromosome_order_method = 'GW',
+                            max_links=500)
+  bezier_mini <- buildBezierDF(plotData$homolog_df_list,
+                               colname1='topMini_finalOffset',
+                               colname2='bottomMini_finalOffset')
+  p <- orthoRibbonPlot(common_name, bezier_mini,
+                  plotData$chrom_bars_df,
+                  plotData$chrom_label_df)
+  expect_s3_class(p, 'ggplot')
+  symbol_df_top <- plotData$symbol_df_top
+  symbol_df_top <-
+    symbol_df_top[sample(seq.int(nrow(symbol_df_top)), 10), ]
+  symbol_df_top$x <- symbol_df_top$xMini
+  symbol_df_bottom <- plotData$symbol_df_bottom
+  symbol_df_bottom <-
+    symbol_df_bottom[sample(seq.int(nrow(symbol_df_bottom)), 10), ]
+  symbol_df_bottom$x <- symbol_df_bottom$xMini
+  p <- orthoRibbonPlot(common_name, bezier_mini,
+                       plotData$chrom_bars_df,
+                       plotData$chrom_label_df,
+                       show_symbol=TRUE,
+                       symbol_df_top=symbol_df_top,
+                       symbol_df_bottom=symbol_df_bottom
+                       )
+  expect_s3_class(p, 'ggplot')
+  pd <- subset(plotData, subset=list('dmelanogaster'=c('3R', '3L'),
+                                     'hsapiens'='X'))
+  show(pd)
+})

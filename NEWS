@@ -1,3 +1,9 @@
+# Changes in version 0.99.1
+
+  o Use BiocStyle to format the vignette.
+  o Resave the extdata as data
+  o Add more unit tests.
+
 # Changes in version 0.99.0
 
   o Prepare to submit to Bioconductor.

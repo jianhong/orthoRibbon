@@ -15,8 +15,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
-  html_document:
-    theme: simplex
+  BiocStyle::html_document:
     toc: true
     toc_float: true
     toc_depth: 4
@@ -78,12 +77,11 @@ You can get the ortholog data via tools like
 [OrthoDB](https://www.orthodb.org/), [eggNOG](http://eggnog6.embl.de/).
 
 ```{r load_human_fly_data}
-extdata <- system.file('extdata', package='orthoRibbon')
-chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
+data("human_fly")
+ls()
 names(chrom_infos)
 head(chrom_infos[[1]], n=2)
-## the homologs_df must contain columns 'gene_id', and 'ortholog_group'.
-homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
+## the homologs_df must contain columns 'gene_id', and 'ortholog_group'.\
 head(homologs_df, n=2)
 ```
 
@@ -160,13 +158,10 @@ We will load presaved data.
 ```{r loadEnsemblData}
 common_name <- c("hsapiens", "mmusculus", "drerio")
 common_name <- setNames(common_name, common_name)
-extdata <- system.file('extdata', 'ensembl', package='orthoRibbon')
-chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
+data("ensembl_hs_mm_dr")
 names(chrom_infos)
 head(chrom_infos[[1]], n=2)
-homologs_df <- readRDS(file.path(extdata, 'homolog_df.human.mouse.zebrafish.rds'))
 head(homologs_df, n=2)
-genes_gr <- readRDS(file.path(extdata, 'gene.GRanges.obj.rds'))
 head(genes_gr, n=2)
 ```
 

@@ -16,9 +16,7 @@
 #' B\'ezier curve.
 #' @export
 #' @examples
-#' extdata <- system.file('extdata', 'human_fly', package='orthoRibbon')
-#' chrom_infos <- readRDS(file.path(extdata, 'chrom_infos.rds'))
-#' homologs_df <- readRDS(file.path(extdata, 'homologs_df.rds'))
+#' data("human_fly")
 #' common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
 #' plotData <- buildPlotData(common_name, homologs_df,
 #'                           chrom_infos = chrom_infos,

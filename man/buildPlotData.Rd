@@ -48,17 +48,16 @@ Otherwise see \link[seriation:seriate]{seriate}. It will be worth to
 try 'TSP' first.}
 }
 \value{
-A list with elements "homolog_df_list", "chrom_bars_df",
-"chrom_label_df" , "symbol_df_top" and, "symbol_df_bottom" for plot.
+A \link{HomologPlotData} object with elements "homolog_df_list",
+"chrom_bars_df", "chrom_label_df" , "symbol_df_top" and,
+"symbol_df_bottom" for plot.
 }
 \description{
 Build the plot data from homolog data.frame, gene annotations and chromosome
 informations.
 }
 \examples{
-extdata <- system.file('extdata', package='orthoRibbon')
-chrom_infos <- readRDS(file.path(extdata, 'human_fly/chrom_infos.rds'))
-homologs_df <- readRDS(file.path(extdata, 'human_fly/homologs_df.rds'))
+data("human_fly")
 common_name <- setNames(nm=c("hsapiens", "dmelanogaster"))
 plotData <- buildPlotData(common_name, homologs_df,
                           chrom_infos = chrom_infos,
