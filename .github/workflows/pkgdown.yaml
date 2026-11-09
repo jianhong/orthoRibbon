@@ -27,6 +27,7 @@ jobs:
             any::rmarkdown
             any::pkgdown
             any::BiocManager
+            github::jianhong/geneClusterPattern
 
       - name: Build pkgdown
         run: |
